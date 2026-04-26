@@ -1,0 +1,64 @@
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:0.37.2
+    container_name: bible-notes-pb
+    restart: unless-stopped
+    volumes:
+      - pb_data:/pb_data
+      - pb_public:/pb_public
+      - type: bind
+        source: ./server/pb_migrations
+        target: /pb_migrations
+        is_directory: true
+      - type: bind
+        source: ./server/hooks
+        target: /pb_hooks
+        is_directory: true
+    environment:
+      - TZ=UTC
+      - PB_SETTINGS_METRICS_ENABLED=false
+      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:?}
+      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:?}
+    command: ["serve", "--encryptionEnv", "ENCRYPTION"]
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bible-pb.rule=Host(`bible.zonit.co.za`) && (PathPrefix(`/api/`) || PathPrefix(`/_/`))"
+      - "traefik.http.routers.bible-pb.tls=true"
+      - "traefik.http.routers.bible-pb.tls.certresolver=letsencrypt"
+      - "traefik.http.services.bible-pb.loadbalancer.server.port=8090"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:?}
+        - NEXT_PUBLIC_POCKETBASE_URL=${NEXT_PUBLIC_POCKETBASE_URL:?}
+    container_name: bible-notes-web
+    restart: unless-stopped
+    environment:
+      - POCKETBASE_URL=http://pocketbase:8090
+      - NEXT_PUBLIC_POCKETBASE_URL=${NEXT_PUBLIC_POCKETBASE_URL:?}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:?}
+      - NEXT_PUBLIC_BIBLE_GATEWAY_URL=https://www.biblegateway.com/passage/
+      - NEXT_PUBLIC_DEFAULT_BIBLE_VERSION=NIV
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bible-web.rule=Host(`bible.zonit.co.za`)"
+      - "traefik.http.routers.bible-web.tls=true"
+      - "traefik.http.routers.bible-web.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.bible-web.priority=1"
+      - "traefik.http.services.bible-web.loadbalancer.server.port=3000"
+
+volumes:
+  pb_data:
+  pb_public:
