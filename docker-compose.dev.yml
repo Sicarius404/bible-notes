@@ -1,0 +1,35 @@
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:0.37.2
+    container_name: bible-notes-pb
+    ports:
+      - "8090:8090"
+    volumes:
+      - pb_data:/pb_data
+      - pb_public:/pb_public
+      - ./server/pb_migrations:/pb_migrations
+      - ./server/hooks:/pb_hooks
+    environment:
+      - TZ=UTC
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: bible-notes-web
+    ports:
+      - "3000:3000"
+    environment:
+      # SSR: internal Docker hostname
+      - POCKETBASE_URL=http://pocketbase:8090
+      # Browser: proxied through Nginx at /api
+      - NEXT_PUBLIC_POCKETBASE_URL=/api
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - NEXT_PUBLIC_BIBLE_GATEWAY_URL=https://www.biblegateway.com/passage/
+      - NEXT_PUBLIC_DEFAULT_BIBLE_VERSION=NIV
+    depends_on:
+      - pocketbase
+
+volumes:
+  pb_data:
+  pb_public:

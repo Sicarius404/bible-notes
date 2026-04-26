@@ -6,20 +6,14 @@ services:
     volumes:
       - pb_data:/pb_data
       - pb_public:/pb_public
-      - type: bind
-        source: ./server/pb_migrations
-        target: /pb_migrations
-        is_directory: true
-      - type: bind
-        source: ./server/hooks
-        target: /pb_hooks
-        is_directory: true
+      - ./server/pb_migrations:/pb_migrations
+      - ./server/hooks:/pb_hooks
     environment:
       - TZ=UTC
       - PB_SETTINGS_METRICS_ENABLED=false
-      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:?}
-      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:?}
-    command: ["serve", "--encryptionEnv", "ENCRYPTION"]
+      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:-admin@bible.zonit.co.za}
+      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:-changeme123}
+    command: ["serve"]
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8090/api/health"]
       interval: 30s

@@ -1,0 +1,23 @@
+{
+  "name": "@bible-notes/pocketbase-client",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "pocketbase": "^0.26.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@bible-notes/shared": "workspace:*"
+  }
+}

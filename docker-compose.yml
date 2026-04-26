@@ -1,0 +1,63 @@
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:0.37.2
+    container_name: bible-notes-pb
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      - pb_data:/pb_data
+      - pb_public:/pb_public
+      - ./server/pb_migrations:/pb_migrations
+      - ./server/hooks:/pb_hooks
+    environment:
+      - TZ=UTC
+      # PocketBase settings
+      - PB_SETTINGS_METRICS_ENABLED=false
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: bible-notes-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # SSR: internal Docker hostname (not accessible from browser)
+      - POCKETBASE_URL=http://pocketbase:8090
+      # Browser: public URL proxied through Nginx (set this to your domain)
+      # In production, set NEXT_PUBLIC_POCKETBASE_URL to your public URL, e.g.:
+      #   https://yourdomain.com/api
+      # For local Docker dev, the Nginx proxy at /api/ routes to PocketBase
+      - NEXT_PUBLIC_POCKETBASE_URL=${NEXT_PUBLIC_POCKETBASE_URL:-/api}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost}
+      - NEXT_PUBLIC_BIBLE_GATEWAY_URL=https://www.biblegateway.com/passage/
+      - NEXT_PUBLIC_DEFAULT_BIBLE_VERSION=NIV
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.30
+    container_name: bible-notes-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - web
+      - pocketbase
+
+volumes:
+  pb_data:
+  pb_public:
