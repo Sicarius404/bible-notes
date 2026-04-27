@@ -1,0 +1,4 @@
+FROM ghcr.io/muchobien/pocketbase:0.37.2
+
+# Bake hooks into the image so bind-mount fsnotify events don't cause restart loops
+COPY ./hooks /pb_hooks

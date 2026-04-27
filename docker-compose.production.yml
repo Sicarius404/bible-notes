@@ -1,6 +1,8 @@
 services:
   pocketbase:
-    image: ghcr.io/muchobien/pocketbase:0.37.2
+    build:
+      context: ./server
+      dockerfile: Dockerfile.pocketbase
     container_name: bible-notes-pb
     restart: unless-stopped
     volumes:
@@ -8,7 +10,6 @@ services:
       - /var/lib/coolify/volumes/bible-notes/pb_public:/pb_public
       # Mount migrations INTO the data dir so PocketBase finds them
       - ./server/pb_migrations:/pb_data/pb_migrations
-      - ./server/hooks:/pb_hooks
     environment:
       - TZ=UTC
       - PB_SETTINGS_METRICS_ENABLED=false
