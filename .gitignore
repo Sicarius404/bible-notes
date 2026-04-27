@@ -16,6 +16,7 @@ web-report/
 # PocketBase data (lives on server, not in repo)
 server/pb_data/
 server/pocketbase
+server/pb_migrations/*.db
 
 # Backups
 backups/

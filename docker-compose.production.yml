@@ -6,17 +6,18 @@ services:
     volumes:
       - /var/lib/coolify/volumes/bible-notes/pb_data:/pb_data
       - /var/lib/coolify/volumes/bible-notes/pb_public:/pb_public
-      - ./server/pb_migrations:/pb_migrations
+      # Mount migrations INTO the data dir so PocketBase finds them
+      - ./server/pb_migrations:/pb_data/pb_migrations
       - ./server/hooks:/pb_hooks
     environment:
       - TZ=UTC
       - PB_SETTINGS_METRICS_ENABLED=false
       - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:-admin@bible.zonit.co.za}
       - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:-changeme123}
-    command: ["serve", "--http=0.0.0.0:8090"]
+    # NO command override — let the entrypoint set --dir, --publicDir, --hooksDir, and auto-create superuser
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.bible-pb.rule=Host(`bible.zonit.co.za`) && (PathPrefix(`/api/`) || PathPrefix(`/_/`))"
+      - "traefik.http.routers.bible-pb.rule=Host(`bible.zonit.co.za`) && (PathPrefix(`/api/`) || PathPrefix(`/_//`))"
       - "traefik.http.routers.bible-pb.tls=true"
       - "traefik.http.routers.bible-pb.tls.certresolver=letsencrypt"
       - "traefik.http.services.bible-pb.loadbalancer.server.port=8090"
