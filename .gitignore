@@ -10,6 +10,9 @@ build/
 .expo/
 web-report/
 
+# TypeScript incremental build info
+*.tsbuildinfo
+
 # PocketBase data (lives on server, not in repo)
 server/pb_data/
 server/pocketbase
