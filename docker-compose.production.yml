@@ -17,7 +17,7 @@ services:
     # NO command override — let the entrypoint set --dir, --publicDir, --hooksDir, and auto-create superuser
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.bible-pb.rule=Host(`bible.zonit.co.za`) && (PathPrefix(`/api/`) || PathPrefix(`/_//`))"
+      - "traefik.http.routers.bible-pb.rule=Host(`bible.zonit.co.za`) && (PathPrefix(`/api/`) || PathPrefix(`/_/`))"
       - "traefik.http.routers.bible-pb.tls=true"
       - "traefik.http.routers.bible-pb.tls.certresolver=letsencrypt"
       - "traefik.http.services.bible-pb.loadbalancer.server.port=8090"
