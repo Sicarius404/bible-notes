@@ -17,9 +17,9 @@ migrate((app) => {
       name: "users",
       listRule: "id = @request.auth.id",
       viewRule: "id = @request.auth.id",
-      createRule: null,
+      createRule: "",
       updateRule: "id = @request.auth.id",
-      deleteRule: null,
+      deleteRule: "",
       passwordAuth: { enabled: true, identityFields: ["email"] },
       fields: [
         { name: "name", type: "text", required: true, max: 100, presentable: true },
