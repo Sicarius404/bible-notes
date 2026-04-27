@@ -1,25 +1,21 @@
 migrate((app) => {
   const collection = app.findCollectionByNameOrId("users")
 
-  collection.setOptions({
-    listRule: "id = @request.auth.id",
-    viewRule: "id = @request.auth.id",
-    createRule: "",
-    updateRule: "id = @request.auth.id",
-    deleteRule: "",
-  })
+  collection.listRule = "id = @request.auth.id"
+  collection.viewRule = "id = @request.auth.id"
+  collection.createRule = ""
+  collection.updateRule = "id = @request.auth.id"
+  collection.deleteRule = ""
 
   app.save(collection)
 }, (app) => {
   const collection = app.findCollectionByNameOrId("users")
 
-  collection.setOptions({
-    listRule: "id = @request.auth.id",
-    viewRule: "id = @request.auth.id",
-    createRule: null,
-    updateRule: "id = @request.auth.id",
-    deleteRule: null,
-  })
+  collection.listRule = "id = @request.auth.id"
+  collection.viewRule = "id = @request.auth.id"
+  collection.createRule = null
+  collection.updateRule = "id = @request.auth.id"
+  collection.deleteRule = null
 
   app.save(collection)
 })
