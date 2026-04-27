@@ -45,7 +45,3 @@ services:
       - "traefik.http.routers.bible-web.tls.certresolver=letsencrypt"
       - "traefik.http.routers.bible-web.priority=1"
       - "traefik.http.services.bible-web.loadbalancer.server.port=3000"
-
-volumes:
-  pb_data:
-  pb_public:
