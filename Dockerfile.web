@@ -32,13 +32,7 @@ RUN pnpm install --frozen-lockfile
 # Build shared packages first
 RUN pnpm --filter @bible-notes/shared build
 
-# Diagnostic: show TypeScript version and @types/node location
-RUN echo "=== TSC VERSION ===" && pnpm --filter @bible-notes/pocketbase-client exec tsc --version && \
-    echo "=== @types/node location ===" && ls -la packages/pocketbase-client/node_modules/@types/node 2>/dev/null || echo "Not found in package node_modules" && \
-    ls -la node_modules/@types/node 2>/dev/null || echo "Not found in root node_modules" && \
-    echo "=== TSC BUILD OUTPUT ===" && \
-    pnpm --filter @bible-notes/pocketbase-client exec tsc --noEmit 2>&1 || true
-
+# Build pocketbase-client
 RUN pnpm --filter @bible-notes/pocketbase-client build
 
 # Build web app
