@@ -35,9 +35,9 @@ function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full transition-all duration-200 hover:shadow-lg">
       <CardHeader className="text-center">
-        <CardTitle>Sign in</CardTitle>
+        <CardTitle className="text-2xl">Sign in</CardTitle>
         <CardDescription>Access your Bible Notes account</CardDescription>
       </CardHeader>
       <CardContent>
@@ -86,7 +86,27 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="animate-pulse p-8"><div className="h-64 bg-muted rounded-lg" /></div>}>
+    <Suspense fallback={
+      <div className="w-full animate-pulse">
+        <div className="rounded-xl border bg-card text-card-foreground shadow p-6">
+          <div className="text-center space-y-2 mb-6">
+            <div className="mx-auto h-7 w-28 rounded-md bg-muted" />
+            <div className="mx-auto h-4 w-52 rounded-md bg-muted" />
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="h-4 w-12 rounded-md bg-muted" />
+              <div className="h-9 w-full rounded-md bg-muted" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-16 rounded-md bg-muted" />
+              <div className="h-9 w-full rounded-md bg-muted" />
+            </div>
+            <div className="h-9 w-full rounded-md bg-muted" />
+          </div>
+        </div>
+      </div>
+    }>
       <LoginForm />
     </Suspense>
   )

@@ -15,7 +15,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile.web
+      dockerfile: Dockerfile.web.dev
     container_name: bible-notes-web
     ports:
       - "3000:3000"
@@ -29,6 +29,16 @@ services:
       - NEXT_PUBLIC_DEFAULT_BIBLE_VERSION=NIV
     depends_on:
       - pocketbase
+    volumes:
+      # Mount source code for hot reloading
+      - .:/app
+      # Preserve container node_modules to avoid host conflicts
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/packages/shared/node_modules
+      - /app/packages/pocketbase-client/node_modules
+      # Preserve Next.js cache to avoid re-compiling from scratch
+      - /app/apps/web/.next
 
 volumes:
   pb_data:
