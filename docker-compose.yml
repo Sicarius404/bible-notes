@@ -14,12 +14,6 @@ services:
       - TZ=UTC
       # PocketBase settings
       - PB_SETTINGS_METRICS_ENABLED=false
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8090/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
   web:
     build:
@@ -41,8 +35,7 @@ services:
       - NEXT_PUBLIC_BIBLE_GATEWAY_URL=https://www.biblegateway.com/passage/
       - NEXT_PUBLIC_DEFAULT_BIBLE_VERSION=NIV
     depends_on:
-      pocketbase:
-        condition: service_healthy
+      - pocketbase
 
   nginx:
     image: nginx:1.30
