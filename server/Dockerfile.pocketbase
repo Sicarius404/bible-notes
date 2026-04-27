@@ -2,3 +2,11 @@ FROM ghcr.io/muchobien/pocketbase:0.37.2
 
 # Bake hooks into the image so bind-mount fsnotify events don't cause restart loops
 COPY ./hooks /pb_hooks
+
+# Bake migrations into the image at a fixed path
+COPY ./pb_migrations /pb_migrations
+
+# Use custom entrypoint to add --migrationsDir without losing superuser auto-creation
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

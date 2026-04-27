@@ -8,8 +8,7 @@ services:
     volumes:
       - /var/lib/coolify/volumes/bible-notes/pb_data:/pb_data
       - /var/lib/coolify/volumes/bible-notes/pb_public:/pb_public
-      # Mount migrations INTO the data dir so PocketBase finds them
-      - ./server/pb_migrations:/pb_data/pb_migrations
+      # Migrations are baked into the image at /pb_migrations — no bind mount needed
     environment:
       - TZ=UTC
       - PB_SETTINGS_METRICS_ENABLED=false
