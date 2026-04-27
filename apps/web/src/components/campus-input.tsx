@@ -132,7 +132,7 @@ export function CampusInput({ value, onChange, placeholder = 'Campus', className
                 }}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 className={cn(
-                  'px-3 py-2 text-sm cursor-pointer',
+                  'px-3 py-2 text-sm cursor-pointer focus:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1',
                   index === highlightedIndex
                     ? 'bg-accent text-accent-foreground'
                     : 'hover:bg-accent hover:text-accent-foreground'

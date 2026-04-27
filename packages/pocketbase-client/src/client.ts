@@ -39,7 +39,11 @@ export function resetPocketBase(): void {
  * Replaces single quotes and backslashes to prevent filter injection.
  */
 export function escapeFilterValue(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/%/g, '\\%')
+    .replace(/_/g, '\\_')
 }
 
 export { PocketBase }

@@ -107,9 +107,20 @@ function escapeRegex(str: string): string {
  * - Ps 23:1-6
  */
 const VERSE_REGEX = new RegExp(
-  `(?:${buildBookPattern()})\\s+\\d{1,3}(?::\\d{1,3}(?:-\\d{1,3})?(?:,\\s*\\d{1,3}(?:-\\d{1,3})?)*|(?:-\\d{1,3})?)`,
+  `(?<!\\w)(?:${buildBookPattern()})\\s+\\d{1,3}(?::\\d{1,3}(?:-\\d{1,3})?(?:,\\s*\\d{1,3}(?:-\\d{1,3})?)*|(?:-\\d{1,3})?)`,
   'g'
 )
+
+let PARSE_REGEX: RegExp | null = null
+
+function getParseRegex(): RegExp {
+  if (!PARSE_REGEX) {
+    PARSE_REGEX = new RegExp(
+      `^(?:${buildBookPattern()})\\s+(\\d{1,3})(?::(\\d{1,3})(?:-(\\d{1,3}))?|(?:-(\\d{1,3}))?)$`
+    )
+  }
+  return PARSE_REGEX
+}
 
 /**
  * Find all Bible verse references in a text string.
@@ -137,9 +148,7 @@ export function findVerseReferences(text: string): VerseMatch[] {
  */
 export function parseVerseReference(ref: string): VerseMatch | null {
   // Match: BookName Chapter:VerseStart(-VerseEnd?) or BookName Chapter(-ChapterEnd?)
-  const pattern = new RegExp(
-    `^(?:${buildBookPattern()})\\s+(\\d{1,3})(?::(\\d{1,3})(?:-(\\d{1,3}))?|(?:-(\\d{1,3}))?)$`
-  )
+  const pattern = getParseRegex()
   const match = ref.trim().match(pattern)
 
   if (!match) return null

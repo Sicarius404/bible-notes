@@ -81,14 +81,35 @@ export async function markDayComplete(
   }
 
   // Create new progress record
-  const record = await pb.collection(PROGRESS_COLLECTION).create({
-    plan_id: planId,
-    day_number: dayNumber,
-    completed: true,
-    completed_at: new Date().toISOString(),
-    user_id: pb.authStore.record?.id,
-  })
-  return record as unknown as ReadingPlanProgress
+  try {
+    const record = await pb.collection(PROGRESS_COLLECTION).create({
+      plan_id: planId,
+      day_number: dayNumber,
+      completed: true,
+      completed_at: new Date().toISOString(),
+      user_id: pb.authStore.record?.id,
+    })
+    return record as unknown as ReadingPlanProgress
+  } catch (err: unknown) {
+    // If unique constraint violation, the record was created concurrently;
+    // treat as already completed and toggle it off
+    const error = err as { response?: { message?: string }; message?: string }
+    if (
+      error?.response?.message?.includes('unique') ||
+      error?.message?.includes('unique')
+    ) {
+      const result = await pb.collection(PROGRESS_COLLECTION).getFirstListItem(
+        `plan_id = '${escapeFilterValue(planId)}' && day_number = ${dayNumber}`
+      )
+      const existing = result as unknown as ReadingPlanProgress
+      const record = await pb.collection(PROGRESS_COLLECTION).update(existing.id, {
+        completed: false,
+        completed_at: '',
+      })
+      return record as unknown as ReadingPlanProgress
+    }
+    throw err
+  }
 }
 
 export async function getPlanProgress(planId: string): Promise<ReadingPlanProgress[]> {

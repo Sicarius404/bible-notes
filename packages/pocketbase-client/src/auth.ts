@@ -14,15 +14,29 @@ export interface AuthUser {
  */
 export async function signUp(email: string, password: string, name?: string): Promise<AuthUser> {
   const pb = getPocketBase()
-  const record = await pb.collection('users').create({
-    email,
-    password,
-    passwordConfirm: password,
-    name: name || email.split('@')[0],
-  })
+  let record
+  try {
+    record = await pb.collection('users').create({
+      email,
+      password,
+      passwordConfirm: password,
+      name: name || email.split('@')[0],
+    })
+  } catch (err) {
+    throw new Error('Failed to create account. The email may already be in use.')
+  }
 
-  // Auto-login after signup
-  await pb.collection('users').authWithPassword(email, password)
+  try {
+    await pb.collection('users').authWithPassword(email, password)
+  } catch (err) {
+    // Attempt cleanup of orphaned record
+    try {
+      await pb.collection('users').delete(record.id)
+    } catch {
+      // Ignore cleanup failure
+    }
+    throw new Error('Account created but auto-login failed. Please log in manually.')
+  }
 
   return mapUser(pb.authStore.record)
 }

@@ -3,8 +3,8 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
 import { getPocketBase, resetPocketBase } from '@bible-notes/pocketbase-client'
 import type { AuthUser } from '@bible-notes/pocketbase-client'
+import type PocketBase from 'pocketbase'
 import { logIn, logOut, getCurrentUser, signUp } from '@bible-notes/pocketbase-client'
-import PocketBase from 'pocketbase'
 
 type AuthContextType = {
   user: AuthUser | null
@@ -13,7 +13,6 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<AuthUser>
   signup: (email: string, password: string, name?: string) => Promise<AuthUser>
   logout: () => Promise<void>
-  pb: PocketBase
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -31,7 +30,8 @@ export function useAuth() {
  */
 function syncAuthToCookie(pb: PocketBase) {
   if (typeof document === 'undefined') return
-  document.cookie = `pb_auth=${pb.authStore.token}; path=/; max-age=${pb.authStore.token ? 60 * 60 * 24 * 7 : 0}; SameSite=Lax`
+  const secure = window.location.protocol === 'https:' ? 'Secure; ' : ''
+  document.cookie = `pb_auth=${pb.authStore.token}; path=/; max-age=${pb.authStore.token ? 60 * 60 * 24 * 7 : 0}; ${secure}SameSite=Lax`
 }
 
 export function PocketBaseProvider({ children }: { children: React.ReactNode }) {
@@ -98,8 +98,7 @@ export function PocketBaseProvider({ children }: { children: React.ReactNode }) 
     login,
     signup: signupFn,
     logout,
-    pb,
-  }), [user, isLoading, login, signupFn, logout, pb])
+  }), [user, isLoading, login, signupFn, logout])
 
   return (
     <AuthContext.Provider value={contextValue}>
