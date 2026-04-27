@@ -52,3 +52,6 @@ apps/mobile/ios/
 
 # Misc
 *.tgz
+
+AGENTS.md
+.codex

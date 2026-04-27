@@ -13,7 +13,7 @@ services:
       - PB_SETTINGS_METRICS_ENABLED=false
       - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:-admin@bible.zonit.co.za}
       - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:-changeme123}
-    command: ["serve"]
+    command: ["serve", "--http=0.0.0.0:8090"]
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.bible-pb.rule=Host(`bible.zonit.co.za`) && (PathPrefix(`/api/`) || PathPrefix(`/_/`))"
