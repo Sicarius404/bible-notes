@@ -1,8 +1,8 @@
 # Bible Notes App — Project Status
 
-**Last updated:** April 27, 2026
-**Phase:** Phase A (Web App) — Complete, reviewed, and hardened
-**Next phase:** Phase B (Mobile App — Expo SDK 55)
+**Last updated:** April 28, 2026
+**Phase:** Phase A (Web App) — Complete, reviewed, hardened, and deployed
+**Phase B (Mobile App — Expo SDK 55)**: Scaffolded and functional
 
 ---
 
@@ -61,7 +61,7 @@ cp .env.example .env
 bible-notes/
 ├── apps/
 │   ├── web/                        # Next.js 16 web app ✅
-│   └── mobile/                      # Expo SDK 55 (Phase B — not started)
+│   └── mobile/                      # Expo SDK 55 (Phase B — scaffolded, 6 tabs + auth) ✅
 ├── packages/
 │   ├── shared/                      # Types, constants, verse parser ✅
 │   └── pocketbase-client/           # API wrapper for all CRUD ✅
@@ -104,7 +104,11 @@ bible-notes/
 - **Sermons**: List with pastor/campus/service_type/date/search filters, create with campus autocomplete + pastor autocomplete + morning/evening toggle, view/edit, delete
 - **Reading Plans**: List with progress bars, preset plan import dialog, custom plan builder, day-by-day progress with checkmarks (race-condition safe), delete
 - **Revelations**: Quick-jot input at top, inline edit, search/filter, delete with confirmation
-- **UI Components**: shadcn/ui (button, input, card, badge, textarea, label, dialog, select, tabs, toggle, toggle-group), verse-badge, verse-input, campus-input, pastor-input
+- **Settings**: Export all data as JSON, import data back with error handling
+- **UI Components**: shadcn/ui (button, input, card, badge, textarea, label, dialog, select, tabs, toggle, toggle-group), verse-badge, verse-input, campus-input, pastor-input, VerseContent, theme-toggle
+- **Dark Mode**: System-aware dark theme toggle with next-themes and Tailwind v4 class strategy
+- **PWA**: Service worker, manifest.json, installable web app with offline caching via @ducanh2912/next-pwa
+- **Password Reset**: /forgot-password page using PocketBase requestPasswordReset
 
 ### Infrastructure
 - **Docker Compose**: PocketBase + Next.js + Nginx for production
@@ -115,7 +119,36 @@ bible-notes/
 
 ---
 
-## Comprehensive Review & Fixes (April 27, 2026)
+## New Features (April 28, 2026)
+
+### Dark Mode Toggle
+- `next-themes` with system preference detection
+- `ThemeProvider` wrapping app in `providers.tsx`
+- Theme toggle button in sidebar and mobile header
+- Full shadcn dark palette in `globals.css`
+
+### PWA / Offline Support
+- `@ducanh2912/next-pwa` integrated in `next.config.ts`
+- `manifest.json` with app metadata and icon
+- Service worker auto-generated on build (`sw.js`, `workbox-*`)
+
+### Export / Import Data
+- `packages/pocketbase-client/src/export-import.ts` with `exportAllData()` and `importData()`
+- Settings page at `/settings` with Export (JSON download) and Import (file picker)
+- Per-item error handling during import
+
+### Password Reset Flow
+- `/forgot-password` page with email input
+- Success message: "If an account exists with this email, you will receive a password reset link."
+- "Forgot password?" link on login page
+
+### Zod Validation Schemas Extracted
+- All form schemas moved to `packages/shared/src/validation.ts`
+- Reused across all 8 form pages (create + edit)
+
+---
+
+## Comprehensive Review & Fixes (April 27–28, 2026)
 
 A full security, architecture, and UI/UX review was completed. All critical issues have been resolved.
 
@@ -136,10 +169,12 @@ A full security, architecture, and UI/UX review was completed. All critical issu
 - Wrapped `markDayComplete` create call in try-catch
 - Handles unique constraint violations from concurrent toggles by falling back to an update
 
-#### 4. dangerouslySetInnerHTML Replaced
-**File:** `apps/web/src/app/(app)/bible-notes/[id]/page.tsx`
-- Created `VerseContent` React component that safely renders verse-linked content
-- Eliminates single point of failure for XSS; no raw HTML injection
+#### 4. dangerouslySetInnerHTML Eliminated
+**File:** `apps/web/src/components/verse-content.tsx` (new shared component)
+- Extracted `VerseContent` React component that safely renders verse-linked content
+- Applied to all 5 content pages: bible-notes, small-groups, sermons, revelations list, revelations detail
+- Eliminates all XSS vectors; no raw HTML injection anywhere
+- Fixed small-groups newline rendering bug (`<br/>` was rendering as literal text due to HTML escaping in `linkifyVerses`)
 
 #### 5. Signup Rollback Failure
 **File:** `packages/pocketbase-client/src/auth.ts`
@@ -192,6 +227,15 @@ A full security, architecture, and UI/UX review was completed. All critical issu
 **File:** `Dockerfile.web`
 - Added `RUN npm install sharp` in runner stage for Next.js image optimization
 
+#### 15. Sign-Out Redirect
+**File:** `apps/web/src/app/(app)/layout.tsx`
+- Added `router.push('/login')` after `logout()` so users are redirected to login after signing out
+
+#### 16. PocketBase Client URL Fallback
+**File:** `packages/pocketbase-client/src/client.ts`
+- Fixed double `/api/` bug: changed fallback from `${window.location.origin}/api` to `window.location.origin`
+- PocketBase JS SDK already appends `/api/` automatically
+
 ---
 
 ## Known Issues / TODO
@@ -205,18 +249,22 @@ A full security, architecture, and UI/UX review was completed. All critical issu
 - ✅ Git initialized and committed
 
 ### Needs Implementation
-- [ ] **Mobile app (Phase B)**: Expo SDK 55 with React Native 0.83, Expo Router v5, bottom tab navigator, all 6 tabs sharing `@bible-notes/pocketbase-client`
-- [ ] **Production deployment**: Deploy to Coolify with domain bible.zonit.co.za
-- [ ] **pnpm approve-builds**: Run `pnpm approve-builds` to approve sharp build script
+- [ ] **Mobile app polish**: Create/edit screens, signup screen, icon assets, share-to-app intent, local notifications
+- [ ] **Production deployment refresh**: Redeploy to Coolify with latest changes at bible.zonit.co.za
+
+### Completed Recently
+- ✅ **Mobile app (Phase B)**: Expo SDK 55 scaffolded with Expo Router v5, auth provider, bottom tab navigator, all 6 tabs with list + detail screens
+- ✅ **Production deployment**: Deployed to Coolify with domain bible.zonit.co.za
+- ✅ **Password reset flow UI**: `/forgot-password` page complete
+- ✅ **PWA / offline support**: Service worker, manifest, installable app
+- ✅ **Dark mode toggle**: System-aware with manual override
+- ✅ **Export/import notes**: JSON export/import with error handling
+- ✅ **Client-side Zod validation**: All schemas extracted to `@bible-notes/shared`
 
 ### Potential Improvements
-- [ ] Add password reset flow UI (backend endpoint exists via PocketBase)
-- [ ] Add offline support / PWA for the web app
-- [ ] Add dark mode toggle
-- [ ] Add export/import for notes (JSON/CSV)
 - [ ] Add share-to-app intent for mobile
 - [ ] Add local notification reminders for reading plans
-- [ ] Add client-side input validation schemas to `@bible-notes/pocketbase-client`
+- [ ] Add CSV export option in addition to JSON
 
 ---
 
@@ -236,6 +284,13 @@ A full security, architecture, and UI/UX review was completed. All critical issu
 | **Auth Middleware** | `apps/web/src/middleware.ts` |
 | **Error Boundary** | `apps/web/src/app/error.tsx` |
 | **App Layout** | `apps/web/src/app/(app)/layout.tsx` |
+| **Theme Toggle** | `apps/web/src/components/theme-toggle.tsx` |
+| **Verse Content** | `apps/web/src/components/verse-content.tsx` |
+| **Validation Schemas** | `packages/shared/src/validation.ts` |
+| **Export/Import** | `packages/pocketbase-client/src/export-import.ts` |
+| **Settings Page** | `apps/web/src/app/(app)/settings/page.tsx` |
+| **Mobile App** | `apps/mobile/` |
+| **Mobile Auth** | `apps/mobile/components/auth-provider.tsx` |
 | **Docker Compose** | `docker-compose.yml` |
 | **Coolify Compose** | `docker-compose.production.yml` |
 | **Nginx Config** | `nginx/nginx.conf` |
@@ -255,7 +310,63 @@ After running `./scripts/setup.sh` or starting PocketBase manually:
 
 ---
 
-## Docker Production Deployment
+## Mobile App Testing
+
+## Prerequisites
+- Node.js v24
+- Android Studio (for Android emulator) or Xcode (for iOS simulator)
+- Expo Go app on physical device (optional)
+
+## Quick Start
+
+```bash
+cd /home/ziel/development/ai_testing/bible-notes
+
+# 1. Ensure dependencies are installed
+pnpm install
+
+# 2. Build shared packages
+pnpm --filter @bible-notes/shared build
+pnpm --filter @bible-notes/pocketbase-client build
+
+# 3. Start the mobile app
+cd apps/mobile
+pnpm dev        # or: npx expo start
+
+# 4. Press 'a' for Android emulator, 'i' for iOS simulator
+#    Or scan QR code with Expo Go app on physical device
+```
+
+## Configuration
+The mobile app connects to the same PocketBase backend as the web app. Update `EXPO_PUBLIC_POCKETBASE_URL` in `apps/mobile/.env` if needed:
+```
+EXPO_PUBLIC_POCKETBASE_URL=http://localhost:8090
+```
+
+For testing against production:
+```
+EXPO_PUBLIC_POCKETBASE_URL=https://bible.zonit.co.za
+```
+
+## Current Mobile Features
+- **Auth**: Login screen, auto-redirect if already authenticated, logout in tab header
+- **Home tab**: Recent Bible Notes, Sermons, Revelations with navigation to detail
+- **Notes tab**: List with pull-to-refresh, verse refs, content preview, detail view
+- **Sermons tab**: List with pastor/campus/service type, detail view
+- **Small Groups tab**: List with topic/attendees, detail view
+- **Reading Plans tab**: List with progress bars, detail view with interactive day toggles
+- **Revelations tab**: Quick-jot input at top, list with pull-to-refresh, detail view
+
+## Missing Mobile Features (TODO)
+- Create/edit screens for all collections
+- Signup screen
+- Proper app icons (currently placeholders)
+- Share-to-app intent
+- Local notification reminders
+
+---
+
+# Docker Production Deployment
 
 ```bash
 # Build and deploy
