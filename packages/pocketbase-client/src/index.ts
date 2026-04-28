@@ -53,3 +53,8 @@ export {
   deleteRevelation,
   listRevelations,
 } from './revelations'
+export {
+  exportAllData,
+  importData,
+} from './export-import'
+export type { ExportData, ImportResult } from './export-import'

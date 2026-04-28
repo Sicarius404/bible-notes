@@ -14,6 +14,7 @@ import {
   Church,
   CalendarCheck,
   Lightbulb,
+  Settings,
   LogOut,
   Menu,
 } from 'lucide-react'
@@ -26,6 +27,7 @@ const navItems = [
   { href: '/sermons', label: 'Sermons', icon: Church },
   { href: '/reading-plans', label: 'Reading Plans', icon: CalendarCheck },
   { href: '/revelations', label: 'Revelations', icon: Lightbulb },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
 function NavLink({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
