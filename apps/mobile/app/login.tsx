@@ -44,6 +44,9 @@ export default function LoginScreen() {
         secureTextEntry
       />
       <Button title="Sign In" onPress={handleLogin} />
+      <View style={{ marginTop: 12 }}>
+        <Button title="Don't have an account? Sign Up" onPress={() => router.push('/signup')} />
+      </View>
     </View>
   )
 }

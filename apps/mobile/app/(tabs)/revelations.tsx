@@ -58,6 +58,11 @@ export default function RevelationsScreen() {
         data={revelations}
         keyExtractor={(item) => item.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadRevelations() }} />}
+        ListHeaderComponent={
+          <TouchableOpacity style={styles.newButton} onPress={() => router.push('/revelations/new')}>
+            <Text style={styles.newButtonText}>+ New</Text>
+          </TouchableOpacity>
+        }
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.card} onPress={() => router.push(`/revelations/${item.id}`)}>
             <Text numberOfLines={3} style={styles.content}>{item.content}</Text>
@@ -75,6 +80,8 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   inputRow: { flexDirection: 'row', padding: 16, gap: 8, alignItems: 'center' },
   input: { flex: 1, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10 },
+  newButton: { backgroundColor: '#2563eb', padding: 12, borderRadius: 8, marginHorizontal: 16, marginTop: 8, marginBottom: 8 },
+  newButtonText: { color: '#fff', textAlign: 'center', fontWeight: '600' },
   card: { padding: 12, backgroundColor: '#f5f5f5', marginHorizontal: 16, marginBottom: 8, borderRadius: 8 },
   content: { fontSize: 14 },
   date: { fontSize: 12, color: '#666', marginTop: 4 },

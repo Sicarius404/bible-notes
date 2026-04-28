@@ -46,6 +46,11 @@ export default function ReadingPlansScreen() {
       keyExtractor={(item) => item.id}
       contentContainerStyle={{ padding: 16 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadPlans() }} />}
+      ListHeaderComponent={
+        <TouchableOpacity style={styles.newButton} onPress={() => router.push('/reading-plans/new')}>
+          <Text style={styles.newButtonText}>+ New</Text>
+        </TouchableOpacity>
+      }
       renderItem={({ item }) => (
         <TouchableOpacity style={styles.card} onPress={() => router.push(`/reading-plans/${item.id}`)}>
           <Text style={styles.name}>{item.name}</Text>
@@ -63,6 +68,8 @@ export default function ReadingPlansScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  newButton: { backgroundColor: '#2563eb', padding: 12, borderRadius: 8, marginBottom: 8 },
+  newButtonText: { color: '#fff', textAlign: 'center', fontWeight: '600' },
   card: { padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8, marginBottom: 8 },
   name: { fontSize: 16, fontWeight: '500' },
   meta: { fontSize: 13, color: '#666', marginTop: 4 },

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native'
-import { getReadingPlan, getPlanProgress, markDayComplete } from '@bible-notes/pocketbase-client'
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Button, Alert } from 'react-native'
+import { getReadingPlan, getPlanProgress, markDayComplete, deleteReadingPlan } from '@bible-notes/pocketbase-client'
 import type { ReadingPlan } from '@bible-notes/shared'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, router } from 'expo-router'
 
 export default function ReadingPlanDetail() {
   const { id } = useLocalSearchParams()
@@ -27,6 +27,24 @@ export default function ReadingPlanDetail() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleDelete = () => {
+    Alert.alert('Delete Plan', 'Are you sure you want to delete this reading plan?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteReadingPlan(id as string)
+            router.back()
+          } catch (err) {
+            console.error(err)
+          }
+        },
+      },
+    ])
   }
 
   const toggleDay = async (dayNumber: number) => {
@@ -79,6 +97,9 @@ export default function ReadingPlanDetail() {
             {completedDays.has(day.day) && <Text style={styles.completedBadge}>✓</Text>}
           </TouchableOpacity>
         ))}
+      </View>
+      <View style={{ marginTop: 16 }}>
+        <Button title="Delete Plan" color="red" onPress={handleDelete} />
       </View>
     </ScrollView>
   )

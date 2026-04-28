@@ -38,6 +38,11 @@ export default function SermonsScreen() {
       keyExtractor={(item) => item.id}
       contentContainerStyle={{ padding: 16 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadSermons() }} />}
+      ListHeaderComponent={
+        <TouchableOpacity style={styles.newButton} onPress={() => router.push('/sermons/new')}>
+          <Text style={styles.newButtonText}>+ New</Text>
+        </TouchableOpacity>
+      }
       renderItem={({ item }) => (
         <TouchableOpacity style={styles.card} onPress={() => router.push(`/sermons/${item.id}`)}>
           <Text style={styles.title}>{item.title}</Text>
@@ -52,6 +57,8 @@ export default function SermonsScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  newButton: { backgroundColor: '#2563eb', padding: 12, borderRadius: 8, marginBottom: 8 },
+  newButtonText: { color: '#fff', textAlign: 'center', fontWeight: '600' },
   card: { padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8, marginBottom: 8 },
   title: { fontSize: 16, fontWeight: '500' },
   meta: { fontSize: 13, color: '#666', marginTop: 4 },
