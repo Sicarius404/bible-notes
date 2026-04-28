@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
+import { ThemeProvider } from 'next-themes'
 import { PocketBaseProvider } from '@/components/pocketbase-provider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -17,9 +18,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <PocketBaseProvider>
-        {children}
-      </PocketBaseProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <PocketBaseProvider>
+          {children}
+        </PocketBaseProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   )
 }

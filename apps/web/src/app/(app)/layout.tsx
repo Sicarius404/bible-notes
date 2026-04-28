@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useAuth } from '@/components/pocketbase-provider'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
+import { ThemeToggle } from '@/components/theme-toggle'
 import {
   Home,
   BookOpen,
@@ -57,9 +58,12 @@ function NavContent({ onClick }: { onClick?: () => void }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold">Bible Notes</h1>
-        <p className="text-sm text-muted-foreground">{user?.name || user?.email}</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">Bible Notes</h1>
+          <p className="text-sm text-muted-foreground">{user?.name || user?.email}</p>
+        </div>
+        <ThemeToggle />
       </div>
       <nav className="flex-1 space-y-1">
         {navItems.map(({ href, label, icon: Icon }) => (
@@ -104,6 +108,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SheetContent>
         </Sheet>
         <h1 className="text-lg font-semibold">Bible Notes</h1>
+        <div className="ml-auto">
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Main content */}
