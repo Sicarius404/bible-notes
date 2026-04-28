@@ -349,20 +349,22 @@ EXPO_PUBLIC_POCKETBASE_URL=https://bible.zonit.co.za
 ```
 
 ## Current Mobile Features
-- **Auth**: Login screen, auto-redirect if already authenticated, logout in tab header
+- **Auth**: Login screen, signup screen, auto-redirect if already authenticated, logout in tab header
 - **Home tab**: Recent Bible Notes, Sermons, Revelations with navigation to detail
-- **Notes tab**: List with pull-to-refresh, verse refs, content preview, detail view
-- **Sermons tab**: List with pastor/campus/service type, detail view
-- **Small Groups tab**: List with topic/attendees, detail view
-- **Reading Plans tab**: List with progress bars, detail view with interactive day toggles
-- **Revelations tab**: Quick-jot input at top, list with pull-to-refresh, detail view
+- **Notes tab**: List with pull-to-refresh, "+ New" button, verse refs, content preview, detail view with edit/delete
+- **Sermons tab**: List with "+ New" button, pastor/campus/service type, detail view with edit/delete
+- **Small Groups tab**: List with "+ New" button, topic/attendees, detail view with edit/delete
+- **Reading Plans tab**: List with "+ New" button, progress bars, detail view with interactive day toggles and delete
+- **Revelations tab**: Quick-jot input at top, list with pull-to-refresh, "+ New" button, detail view with edit/delete
+- **Create screens**: Full forms for all 5 collections (Bible Notes, Small Groups, Sermons, Reading Plans, Revelations)
+- **Edit screens**: Inline edit mode on all detail screens with save/cancel
+- **Delete**: Alert confirmation on all detail screens
+- **Icons**: SVG app icons (icon, adaptive-icon, splash)
 
 ## Missing Mobile Features (TODO)
-- Create/edit screens for all collections
-- Signup screen
-- Proper app icons (currently placeholders)
 - Share-to-app intent
-- Local notification reminders
+- Local notification reminders for reading plans
+- Convert SVG icons to PNG for app store submission
 
 ---
 
