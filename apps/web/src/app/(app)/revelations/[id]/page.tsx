@@ -9,6 +9,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getRevelation, updateRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
+import { revelationSchema } from '@bible-notes/shared'
 import VerseContent from '@/components/verse-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,12 +27,7 @@ import {
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
-const schema = z.object({
-  date: z.string().min(1, 'Date is required'),
-  content: z.string().min(1, 'Content is required'),
-})
-
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<typeof revelationSchema>
 
 export default function RevelationPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -51,7 +47,7 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
     reset,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(revelationSchema),
   })
 
   useEffect(() => {

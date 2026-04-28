@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getSermon, updateSermon, deleteSermon } from '@bible-notes/pocketbase-client'
-import { SERVICE_TYPES, SERVICE_TYPE_LABELS } from '@bible-notes/shared'
+import { SERVICE_TYPES, SERVICE_TYPE_LABELS, sermonSchema } from '@bible-notes/shared'
 import VerseContent from '@/components/verse-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,23 +30,6 @@ import { CampusInput } from '@/components/campus-input'
 import { PastorInput } from '@/components/pastor-input'
 import { ArrowLeft, Pencil, Trash2, Save, X, Church } from 'lucide-react'
 import type { ServiceType } from '@bible-notes/shared'
-
-const serviceTypeSchema = z.custom<ServiceType>(
-  (value): value is ServiceType =>
-    typeof value === 'string' && SERVICE_TYPES.includes(value as ServiceType),
-  {
-    message: 'Choose Morning, Evening, or Special.',
-  }
-)
-
-const sermonSchema = z.object({
-  date: z.string().min(1, 'Date is required'),
-  title: z.string().min(1, 'Title is required'),
-  pastor: z.string().min(1, 'Pastor is required'),
-  campus: z.string().min(1, 'Campus is required'),
-  service_type: serviceTypeSchema,
-  content: z.string().min(1, 'Content is required'),
-})
 
 type SermonFormData = z.infer<typeof sermonSchema>
 

@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createReadingPlan } from '@bible-notes/pocketbase-client'
 import type { ReadingPlanDay } from '@bible-notes/shared'
+import { readingPlanSchema } from '@bible-notes/shared'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,18 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Minus, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-const schema = z.object({
-  name: z.string().min(1, 'Plan name is required'),
-  total_days: z.coerce.number().min(1, 'Must be at least 1 day'),
-  start_date: z.string().min(1, 'Start date is required'),
-  days: z.array(
-    z.object({
-      passages: z.string(),
-    })
-  ),
-})
-
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<typeof readingPlanSchema>
 
 export default function NewReadingPlanPage() {
   const router = useRouter()
@@ -42,7 +32,7 @@ export default function NewReadingPlanPage() {
     getValues,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(readingPlanSchema),
     defaultValues: {
       name: '',
       total_days: 30,

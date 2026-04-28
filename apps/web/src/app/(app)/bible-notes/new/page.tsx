@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createBibleNote } from '@bible-notes/pocketbase-client'
-import { extractVerseRefs } from '@bible-notes/shared'
+import { extractVerseRefs, bibleNoteSchema } from '@bible-notes/shared'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -18,12 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { X, Plus, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-const schema = z.object({
-  date: z.string().min(1, 'Date is required'),
-  content: z.string().min(1, 'Content is required'),
-})
-
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<typeof bibleNoteSchema>
 
 export default function NewBibleNotePage() {
   const router = useRouter()
@@ -39,7 +34,7 @@ export default function NewBibleNotePage() {
     setValue,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(bibleNoteSchema),
     defaultValues: {
       date: format(new Date(), 'yyyy-MM-dd'),
       content: '',

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { format } from 'date-fns'
 import { createSmallGroupNote } from '@bible-notes/pocketbase-client'
+import { smallGroupNoteSchema } from '@bible-notes/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,14 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
 
-const schema = z.object({
-  date: z.string().min(1, 'Date is required'),
-  topic: z.string().min(1, 'Topic is required'),
-  attendees: z.string().min(1, 'Attendees are required'),
-  content: z.string().min(1, 'Content is required'),
-})
-
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<typeof smallGroupNoteSchema>
 
 export default function NewSmallGroupPage() {
   const router = useRouter()
@@ -32,7 +26,7 @@ export default function NewSmallGroupPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(smallGroupNoteSchema),
     defaultValues: {
       date: format(new Date(), 'yyyy-MM-dd'),
       topic: '',

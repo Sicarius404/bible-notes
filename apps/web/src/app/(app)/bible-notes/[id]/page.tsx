@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getBibleNote, updateBibleNote, deleteBibleNote } from '@bible-notes/pocketbase-client'
-import { extractVerseRefs } from '@bible-notes/shared'
+import { extractVerseRefs, bibleNoteSchema } from '@bible-notes/shared'
 import VerseContent from '@/components/verse-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,12 +28,7 @@ import {
 import { X, Pencil, Trash2, Plus, ArrowLeft, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
-const schema = z.object({
-  date: z.string().min(1, 'Date is required'),
-  content: z.string().min(1, 'Content is required'),
-})
-
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<typeof bibleNoteSchema>
 
 export default function BibleNotePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -57,7 +52,7 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
     reset,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(bibleNoteSchema),
   })
 
   const content = watch('content')

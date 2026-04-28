@@ -12,6 +12,7 @@ import {
   updateSmallGroupNote,
   deleteSmallGroupNote,
 } from '@bible-notes/pocketbase-client'
+import { smallGroupNoteSchema } from '@bible-notes/shared'
 import VerseContent from '@/components/verse-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,14 +31,7 @@ import {
 } from '@/components/ui/dialog'
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 
-const schema = z.object({
-  date: z.string().min(1, 'Date is required'),
-  topic: z.string().min(1, 'Topic is required'),
-  attendees: z.string().min(1, 'Attendees are required'),
-  content: z.string().min(1, 'Content is required'),
-})
-
-type FormData = z.infer<typeof schema>
+type FormData = z.infer<typeof smallGroupNoteSchema>
 
 export default function SmallGroupDetailPage() {
   const params = useParams()
@@ -58,7 +52,7 @@ export default function SmallGroupDetailPage() {
     reset,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(smallGroupNoteSchema),
     values: note
       ? {
           date: note.date,
