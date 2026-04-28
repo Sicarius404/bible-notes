@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
-import { listBibleNotes } from '@bible-notes/pocketbase-client'
-import type { BibleNote } from '@bible-notes/shared'
+import { listSmallGroupNotes } from '@bible-notes/pocketbase-client'
+import type { SmallGroupNote } from '@bible-notes/shared'
 import { router } from 'expo-router'
 
-export default function BibleNotesScreen() {
-  const [notes, setNotes] = useState<BibleNote[]>([])
+export default function SmallGroupsScreen() {
+  const [notes, setNotes] = useState<SmallGroupNote[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
   const loadNotes = async () => {
     try {
-      const result = await listBibleNotes({ page: 1, per_page: 50 })
+      const result = await listSmallGroupNotes({ page: 1, per_page: 50 })
       setNotes(result.items)
     } catch (err) {
       console.error(err)
@@ -38,13 +38,13 @@ export default function BibleNotesScreen() {
       contentContainerStyle={{ padding: 16 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadNotes() }} />}
       renderItem={({ item }) => (
-        <TouchableOpacity style={styles.card} onPress={() => router.push(`/bible-notes/${item.id}`)}>
-          <Text style={styles.verse}>{item.verse_refs?.join(', ') || 'Note'}</Text>
+        <TouchableOpacity style={styles.card} onPress={() => router.push(`/small-groups/${item.id}`)}>
+          <Text style={styles.topic}>{item.topic}</Text>
           <Text style={styles.date}>{item.date}</Text>
           <Text numberOfLines={2} style={styles.preview}>{item.content}</Text>
         </TouchableOpacity>
       )}
-      ListEmptyComponent={<Text style={styles.empty}>No notes yet</Text>}
+      ListEmptyComponent={<Text style={styles.empty}>No small group notes yet</Text>}
     />
   )
 }
@@ -52,7 +52,7 @@ export default function BibleNotesScreen() {
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   card: { padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8, marginBottom: 8 },
-  verse: { fontSize: 16, fontWeight: '500', color: '#2563eb' },
+  topic: { fontSize: 16, fontWeight: '500' },
   date: { fontSize: 12, color: '#666', marginTop: 4 },
   preview: { fontSize: 14, color: '#333', marginTop: 4 },
   empty: { textAlign: 'center', marginTop: 40, color: '#999' },
