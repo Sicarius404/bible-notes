@@ -8,7 +8,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getSermon, updateSermon, deleteSermon } from '@bible-notes/pocketbase-client'
-import { SERVICE_TYPES, SERVICE_TYPE_LABELS, linkifyVerses } from '@bible-notes/shared'
+import { SERVICE_TYPES, SERVICE_TYPE_LABELS } from '@bible-notes/shared'
+import VerseContent from '@/components/verse-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -357,10 +358,9 @@ export default function SermonDetailPage() {
               <CardTitle className="text-lg">Sermon Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              <div
-                className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap"
-                dangerouslySetInnerHTML={{ __html: linkifyVerses(sermon.content) }}
-              />
+              <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
+                <VerseContent text={sermon.content} />
+              </div>
             </CardContent>
           </Card>
         </div>

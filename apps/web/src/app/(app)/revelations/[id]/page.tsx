@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getRevelation, updateRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
-import { linkifyVerses } from '@bible-notes/shared'
+import VerseContent from '@/components/verse-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -217,10 +217,9 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
       ) : (
         <Card>
           <CardContent className="p-6">
-            <div
-              className="prose prose-sm max-w-none dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: linkifyVerses(revelation.content) }}
-            />
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              <VerseContent text={revelation.content} />
+            </div>
           </CardContent>
         </Card>
       )}

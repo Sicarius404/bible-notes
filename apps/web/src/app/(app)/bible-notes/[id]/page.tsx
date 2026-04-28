@@ -9,7 +9,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getBibleNote, updateBibleNote, deleteBibleNote } from '@bible-notes/pocketbase-client'
-import { extractVerseRefs, verseToUrl } from '@bible-notes/shared'
+import { extractVerseRefs } from '@bible-notes/shared'
+import VerseContent from '@/components/verse-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -26,42 +27,6 @@ import {
 } from '@/components/ui/dialog'
 import { X, Pencil, Trash2, Plus, ArrowLeft, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
-
-function VerseContent({ text }: { text: string }) {
-  const refs = extractVerseRefs(text)
-  if (refs.length === 0) {
-    return <p className="whitespace-pre-wrap">{text}</p>
-  }
-
-  const parts: React.ReactNode[] = []
-  let remaining = text
-
-  for (const ref of refs) {
-    const idx = remaining.indexOf(ref)
-    if (idx === -1) continue
-    if (idx > 0) {
-      parts.push(<span key={`t-${parts.length}`}>{remaining.slice(0, idx)}</span>)
-    }
-    parts.push(
-      <a
-        key={`v-${parts.length}`}
-        href={verseToUrl(ref)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="verse-link"
-      >
-        {ref}
-      </a>
-    )
-    remaining = remaining.slice(idx + ref.length)
-  }
-
-  if (remaining) {
-    parts.push(<span key="end">{remaining}</span>)
-  }
-
-  return <p className="whitespace-pre-wrap">{parts}</p>
-}
 
 const schema = z.object({
   date: z.string().min(1, 'Date is required'),

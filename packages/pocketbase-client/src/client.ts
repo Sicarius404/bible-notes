@@ -17,7 +17,7 @@ export function getPocketBase(url?: string): PocketBase {
     pbUrl = url
   } else if (typeof window !== 'undefined') {
     // Browser: use public URL (proxied through Nginx) or same-origin /api path
-    pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || `${window.location.origin}/api`
+    pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || window.location.origin
   } else {
     // SSR: use internal URL (Docker network or localhost)
     pbUrl = process.env.POCKETBASE_URL || 'http://localhost:8090'

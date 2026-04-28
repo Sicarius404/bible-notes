@@ -71,6 +71,11 @@ function LoginForm() {
               autoComplete="current-password"
             />
           </div>
+          <div className="text-right">
+            <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Signing in...' : 'Sign In'}
           </Button>

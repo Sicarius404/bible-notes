@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useAuth } from '@/components/pocketbase-provider'
 import { Button } from '@/components/ui/button'
@@ -47,10 +47,12 @@ function NavLink({ href, label, icon: Icon }: { href: string; label: string; ico
 
 function NavContent({ onClick }: { onClick?: () => void }) {
   const { user, logout } = useAuth()
+  const router = useRouter()
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     onClick?.()
+    router.push('/login')
   }
 
   return (

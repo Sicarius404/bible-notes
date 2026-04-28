@@ -12,7 +12,7 @@ import {
   updateSmallGroupNote,
   deleteSmallGroupNote,
 } from '@bible-notes/pocketbase-client'
-import { linkifyVerses } from '@bible-notes/shared'
+import VerseContent from '@/components/verse-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -241,12 +241,9 @@ export default function SmallGroupDetailPage() {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Content</h3>
-                <div
-                  className="prose prose-sm max-w-none text-sm leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: linkifyVerses(note.content.replace(/\n/g, '<br/>')),
-                  }}
-                />
+                <div className="prose prose-sm max-w-none text-sm leading-relaxed">
+                  <VerseContent text={note.content} />
+                </div>
               </div>
             </div>
           )}
