@@ -7,6 +7,7 @@ import { RichTextInput } from '../../components/ui/RichTextInput'
 import { colors, spacing, typography } from '../../theme'
 
 export default function NewBibleNoteScreen() {
+  const [title, setTitle] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [verseRefs, setVerseRefs] = useState('')
   const [content, setContent] = useState('')
@@ -14,6 +15,10 @@ export default function NewBibleNoteScreen() {
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async () => {
+    if (!title.trim()) {
+      setError('Title is required')
+      return
+    }
     if (!content.trim()) {
       setError('Content is required')
       return
@@ -25,7 +30,7 @@ export default function NewBibleNoteScreen() {
         .split(',')
         .map((r) => r.trim())
         .filter(Boolean)
-      await createBibleNote({ date, verse_refs: refsArray, content: content.trim() })
+      await createBibleNote({ title: title.trim(), date, verse_refs: refsArray, content: content.trim() })
       router.back()
     } catch (err) {
       setError('Failed to create note')
@@ -40,6 +45,13 @@ export default function NewBibleNoteScreen() {
         <View style={styles.form}>
           <Text style={styles.title}>New Bible Note</Text>
           {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <Input
+            label="Title"
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Note title"
+          />
 
           <Input
             label="Date"

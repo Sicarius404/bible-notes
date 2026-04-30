@@ -14,7 +14,7 @@ export default function BibleNoteDetail() {
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [editForm, setEditForm] = useState({ date: '', verse_refs: '', content: '' })
+  const [editForm, setEditForm] = useState({ title: '', date: '', verse_refs: '', content: '' })
 
   useEffect(() => {
     loadNote()
@@ -25,6 +25,7 @@ export default function BibleNoteDetail() {
       const result = await getBibleNote(id as string)
       setNote(result)
       setEditForm({
+        title: result.title,
         date: result.date,
         verse_refs: result.verse_refs.join(', '),
         content: result.content,
@@ -37,9 +38,14 @@ export default function BibleNoteDetail() {
   }
 
   const handleUpdate = async () => {
+    if (!editForm.title.trim()) {
+      Alert.alert('Error', 'Title is required')
+      return
+    }
     setSaving(true)
     try {
       await updateBibleNote(id as string, {
+        title: editForm.title.trim(),
         date: editForm.date,
         verse_refs: editForm.verse_refs.split(',').map((r) => r.trim()).filter(Boolean),
         content: editForm.content,
@@ -95,6 +101,12 @@ export default function BibleNoteDetail() {
           <View style={styles.form}>
             <Text style={styles.formTitle}>Edit Note</Text>
             <Input
+              label="Title"
+              value={editForm.title}
+              onChangeText={(v) => setEditForm({ ...editForm, title: v })}
+              placeholder="Note title"
+            />
+            <Input
               label="Date"
               value={editForm.date}
               onChangeText={(v) => setEditForm({ ...editForm, date: v })}
@@ -119,6 +131,7 @@ export default function BibleNoteDetail() {
           </View>
         ) : (
           <View style={styles.view}>
+            <Text style={styles.titleHeading}>{note.title}</Text>
             <Text style={styles.verses}>{note.verse_refs?.join(', ') || 'Bible Note'}</Text>
             <Text style={styles.date}>{note.date}</Text>
             <View style={styles.divider} />
@@ -153,8 +166,13 @@ const styles = StyleSheet.create({
   view: {
     paddingTop: spacing.lg,
   },
+  titleHeading: {
+    ...typography.heading1,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
   verses: {
-    ...typography.heading2,
+    ...typography.heading3,
     color: colors.primary,
     marginBottom: spacing.sm,
   },
