@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Search, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
 
 export default function BibleNotesPage() {
@@ -19,7 +19,12 @@ export default function BibleNotesPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [search, setSearch] = useState('')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const debouncedSearch = useDebounce(search, 300)
+
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id))
+  }, [])
 
   const { data, isLoading } = useQuery({
     queryKey: ['bible-notes', { page, verse_ref: verseRef || undefined, date_from: dateFrom || undefined, date_to: dateTo || undefined, search: debouncedSearch || undefined }],
@@ -122,27 +127,53 @@ export default function BibleNotesPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {data?.items.map((note: BibleNote) => (
-            <Link key={note.id} href={`/bible-notes/${note.id}`}>
-              <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+          {data?.items.map((note: BibleNote) => {
+            const isExpanded = expandedId === note.id
+            return (
+              <Card
+                key={note.id}
+                className="hover:border-primary/50 transition-colors cursor-pointer"
+                onClick={() => toggleExpand(note.id)}
+              >
                 <CardContent className="p-4">
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {note.verse_refs.map((ref) => (
-                      <Badge key={ref} variant="secondary">
-                        {ref}
-                      </Badge>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base truncate">
+                        {note.title || 'Untitled Note'}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        {note.verse_refs.map((ref) => (
+                          <Badge key={ref} variant="secondary">
+                            {ref}
+                          </Badge>
+                        ))}
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(note.date), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+                    </div>
+                    {isExpanded ? (
+                      <ChevronUp className="h-5 w-5 text-muted-foreground shrink-0 ml-2" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0 ml-2" />
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    {format(new Date(note.date), 'MMMM d, yyyy')}
-                  </p>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {note.content.length > 200 ? note.content.slice(0, 200) + '...' : note.content}
-                  </p>
+                  {isExpanded && (
+                    <div className="mt-4 space-y-3">
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {note.content}
+                      </p>
+                      <Link href={`/bible-notes/${note.id}`} onClick={(e) => e.stopPropagation()}>
+                        <Button variant="outline" size="sm">
+                          View Full Note
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
-            </Link>
-          ))}
+            )
+          })}
         </div>
       )}
 

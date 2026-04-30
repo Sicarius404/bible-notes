@@ -10,6 +10,7 @@ import { listReadingPlans } from '@bible-notes/pocketbase-client'
 import { SERVICE_TYPE_LABELS } from '@bible-notes/shared'
 import { BookOpen, Church, Lightbulb, CalendarCheck, Users, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 export default function HomePage() {
   const today = format(new Date(), 'yyyy-MM-dd')
@@ -135,8 +136,8 @@ export default function HomePage() {
               <div className="space-y-2">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="p-2">
-                    <div className="h-4 bg-muted rounded w-2/3 mb-1" />
-                    <div className="h-3 bg-muted rounded w-1/4" />
+                    <div className="h-4 bg-muted rounded w-3/4 mb-1" />
+                    <div className="h-3 bg-muted rounded w-1/3" />
                   </div>
                 ))}
               </div>
@@ -146,8 +147,15 @@ export default function HomePage() {
               recentNotes?.items.map((note) => (
                 <Link key={note.id} href={`/bible-notes/${note.id}`} className="block">
                   <div className="p-2 rounded-md hover:bg-muted/50 transition-colors">
-                    <p className="text-sm font-medium">{note.verse_refs?.[0] || 'Bible Note'}</p>
-                    <p className="text-xs text-muted-foreground">{format(new Date(note.date), 'MMM d, yyyy')}</p>
+                    <p className="text-sm font-medium truncate">{note.title || 'Untitled Note'}</p>
+                    <div className="flex flex-wrap items-center gap-1 mt-1">
+                      {note.verse_refs.slice(0, 3).map((ref) => (
+                        <Badge key={ref} variant="secondary" className="text-xs">
+                          {ref}
+                        </Badge>
+                      ))}
+                      <span className="text-xs text-muted-foreground">{format(new Date(note.date), 'MMM d, yyyy')}</span>
+                    </div>
                   </div>
                 </Link>
               ))

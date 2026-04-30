@@ -36,6 +36,7 @@ export default function NewBibleNotePage() {
   } = useForm<FormData>({
     resolver: zodResolver(bibleNoteSchema),
     defaultValues: {
+      title: '',
       date: format(new Date(), 'yyyy-MM-dd'),
       content: '',
     },
@@ -53,7 +54,7 @@ export default function NewBibleNotePage() {
   }, [content, verseRefs])
 
   const mutation = useMutation({
-    mutationFn: (data: { date: string; verse_refs: string[]; content: string }) => createBibleNote(data),
+    mutationFn: (data: { title: string; date: string; verse_refs: string[]; content: string }) => createBibleNote(data),
     onSuccess: (note) => {
       queryClient.invalidateQueries({ queryKey: ['bible-notes'] })
       router.push(`/bible-notes/${note.id}`)
@@ -62,6 +63,7 @@ export default function NewBibleNotePage() {
 
   const onSubmit = (data: FormData) => {
     mutation.mutate({
+      title: data.title,
       date: data.date,
       verse_refs: verseRefs,
       content: data.content,
@@ -114,6 +116,19 @@ export default function NewBibleNotePage() {
             <CardTitle>Note Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Title */}
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                placeholder="Enter a title for your note..."
+                {...register('title')}
+              />
+              {errors.title && (
+                <p className="text-sm text-destructive">{errors.title.message}</p>
+              )}
+            </div>
+
             {/* Date */}
             <div className="space-y-2">
               <Label htmlFor="date">Date</Label>

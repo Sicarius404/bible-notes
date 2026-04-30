@@ -60,6 +60,7 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
   useEffect(() => {
     if (note) {
       reset({
+        title: note.title,
         date: note.date,
         content: note.content,
       })
@@ -77,7 +78,7 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
   }, [content, verseRefs])
 
   const updateMutation = useMutation({
-    mutationFn: (data: { date: string; verse_refs: string[]; content: string }) =>
+    mutationFn: (data: { title: string; date: string; verse_refs: string[]; content: string }) =>
       updateBibleNote(id, data),
     onSuccess: () => {
       setIsEditing(false)
@@ -94,6 +95,7 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
 
   const onSubmit = (data: FormData) => {
     updateMutation.mutate({
+      title: data.title,
       date: data.date,
       verse_refs: verseRefs,
       content: data.content,
@@ -187,11 +189,11 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
           </Link>
           <div>
             <h2 className="text-2xl font-semibold">
-              {isEditing ? 'Edit Note' : format(new Date(note.date), 'MMMM d, yyyy')}
+              {isEditing ? 'Edit Note' : note.title}
             </h2>
             {!isEditing && (
               <p className="text-muted-foreground text-sm">
-                {note.verse_refs.length} verse{note.verse_refs.length !== 1 ? 's' : ''} referenced
+                {format(new Date(note.date), 'MMMM d, yyyy')} &middot; {note.verse_refs.length} verse{note.verse_refs.length !== 1 ? 's' : ''} referenced
               </p>
             )}
           </div>
@@ -217,6 +219,19 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
               <CardTitle>Edit Note</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Title */}
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  placeholder="Enter a title for your note..."
+                  {...register('title')}
+                />
+                {errors.title && (
+                  <p className="text-sm text-destructive">{errors.title.message}</p>
+                )}
+              </div>
+
               {/* Date */}
               <div className="space-y-2">
                 <Label htmlFor="date">Date</Label>
