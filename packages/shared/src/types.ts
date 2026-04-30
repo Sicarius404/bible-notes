@@ -1,6 +1,7 @@
 export interface BibleNote {
   id: string
   user_id: string
+  title: string
   date: string
   verse_refs: string[]
   content: string

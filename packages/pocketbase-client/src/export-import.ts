@@ -54,7 +54,9 @@ export async function importData(data: ExportData): Promise<ImportResult> {
   if (data.bible_notes) {
     for (const note of data.bible_notes) {
       try {
+        const title = note.title || (note.verse_refs?.[0]) || note.content?.slice(0, 40).trim() || 'Untitled Note'
         await createBibleNote({
+          title,
           date: note.date,
           verse_refs: note.verse_refs || [],
           content: note.content,

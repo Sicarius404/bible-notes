@@ -50,24 +50,27 @@ export async function listRevelations(params?: RevelationSearchParams): Promise<
   const page = params?.page || 1
   const perPage = params?.per_page || 20
 
-  let filter = ''
+  const filters: string[] = []
+
+  const userId = pb.authStore.record?.id
+  if (userId) {
+    filters.push(`user_id = '${escapeFilterValue(userId)}'`)
+  }
 
   if (params?.date_from) {
-    filter += `date >= '${escapeFilterValue(params.date_from)}'`
+    filters.push(`date >= '${escapeFilterValue(params.date_from)}'`)
   }
 
   if (params?.date_to) {
-    const toFilter = `date <= '${escapeFilterValue(params.date_to)}'`
-    filter = filter ? `${filter} && ${toFilter}` : toFilter
+    filters.push(`date <= '${escapeFilterValue(params.date_to)}'`)
   }
 
   if (params?.search) {
-    const searchFilter = `content ~ '${escapeFilterValue(params.search)}'`
-    filter = filter ? `${filter} && ${searchFilter}` : searchFilter
+    filters.push(`content ~ '${escapeFilterValue(params.search)}'`)
   }
 
   const result = await pb.collection(COLLECTION).getList(page, perPage, {
-    filter: filter || undefined,
+    filter: filters.length > 0 ? filters.join(' && ') : undefined,
     sort: '-date',
   })
 

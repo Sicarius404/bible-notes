@@ -53,39 +53,39 @@ export async function listSermons(params?: SermonSearchParams): Promise<{
   const page = params?.page || 1
   const perPage = params?.per_page || 20
 
-  let filter = ''
+  const filters: string[] = []
+
+  const userId = pb.authStore.record?.id
+  if (userId) {
+    filters.push(`user_id = '${escapeFilterValue(userId)}'`)
+  }
 
   if (params?.pastor) {
-    filter += `pastor ~ '${escapeFilterValue(params.pastor)}'`
+    filters.push(`pastor ~ '${escapeFilterValue(params.pastor)}'`)
   }
 
   if (params?.campus) {
-    const campusFilter = `campus ~ '${escapeFilterValue(params.campus)}'`
-    filter = filter ? `${filter} && ${campusFilter}` : campusFilter
+    filters.push(`campus ~ '${escapeFilterValue(params.campus)}'`)
   }
 
   if (params?.service_type) {
-    const typeFilter = `service_type = '${escapeFilterValue(params.service_type)}'`
-    filter = filter ? `${filter} && ${typeFilter}` : typeFilter
+    filters.push(`service_type = '${escapeFilterValue(params.service_type)}'`)
   }
 
   if (params?.date_from) {
-    const fromFilter = `date >= '${escapeFilterValue(params.date_from)}'`
-    filter = filter ? `${filter} && ${fromFilter}` : fromFilter
+    filters.push(`date >= '${escapeFilterValue(params.date_from)}'`)
   }
 
   if (params?.date_to) {
-    const toFilter = `date <= '${escapeFilterValue(params.date_to)}'`
-    filter = filter ? `${filter} && ${toFilter}` : toFilter
+    filters.push(`date <= '${escapeFilterValue(params.date_to)}'`)
   }
 
   if (params?.search) {
-    const searchFilter = `content ~ '${escapeFilterValue(params.search)}'`
-    filter = filter ? `${filter} && ${searchFilter}` : searchFilter
+    filters.push(`content ~ '${escapeFilterValue(params.search)}'`)
   }
 
   const result = await pb.collection(COLLECTION).getList(page, perPage, {
-    filter: filter || undefined,
+    filter: filters.length > 0 ? filters.join(' && ') : undefined,
     sort: '-date',
   })
 
@@ -102,8 +102,14 @@ export async function listSermons(params?: SermonSearchParams): Promise<{
  */
 export async function getAllCampuses(): Promise<string[]> {
   const pb = getPocketBase()
+  const filters: string[] = []
+  const userId = pb.authStore.record?.id
+  if (userId) {
+    filters.push(`user_id = '${escapeFilterValue(userId)}'`)
+  }
   const result = await pb.collection(COLLECTION).getFullList({
     fields: 'campus',
+    filter: filters.length > 0 ? filters.join(' && ') : undefined,
   })
   const campuses = new Set<string>()
   for (const record of result) {
@@ -117,8 +123,14 @@ export async function getAllCampuses(): Promise<string[]> {
  */
 export async function getAllPastors(): Promise<string[]> {
   const pb = getPocketBase()
+  const filters: string[] = []
+  const userId = pb.authStore.record?.id
+  if (userId) {
+    filters.push(`user_id = '${escapeFilterValue(userId)}'`)
+  }
   const result = await pb.collection(COLLECTION).getFullList({
     fields: 'pastor',
+    filter: filters.length > 0 ? filters.join(' && ') : undefined,
   })
   const pastors = new Set<string>()
   for (const record of result) {

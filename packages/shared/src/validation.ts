@@ -3,6 +3,7 @@ import { SERVICE_TYPES } from './constants'
 import type { ServiceType } from './types'
 
 export const bibleNoteSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
   date: z.string().min(1, 'Date is required'),
   content: z.string().min(1, 'Content is required'),
 })

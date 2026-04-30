@@ -8,6 +8,7 @@ const COLLECTION = 'bible_notes'
  * user_id is auto-populated by PocketBase hooks from the auth context.
  */
 export async function createBibleNote(data: {
+  title: string
   date: string
   verse_refs: string[]
   content: string
@@ -34,7 +35,7 @@ export async function getBibleNote(id: string): Promise<BibleNote> {
  */
 export async function updateBibleNote(
   id: string,
-  data: Partial<Pick<BibleNote, 'date' | 'verse_refs' | 'content'>>
+  data: Partial<Pick<BibleNote, 'title' | 'date' | 'verse_refs' | 'content'>>
 ): Promise<BibleNote> {
   const pb = getPocketBase()
   const record = await pb.collection(COLLECTION).update(id, data)
@@ -62,29 +63,31 @@ export async function listBibleNotes(params?: BibleNoteSearchParams): Promise<{
   const page = params?.page || 1
   const perPage = params?.per_page || 20
 
-  let filter = ''
+  const filters: string[] = []
+
+  const userId = pb.authStore.record?.id
+  if (userId) {
+    filters.push(`user_id = '${escapeFilterValue(userId)}'`)
+  }
 
   if (params?.verse_ref) {
-    filter += `verse_refs ~ '${escapeFilterValue(params.verse_ref)}'`
+    filters.push(`verse_refs ~ '${escapeFilterValue(params.verse_ref)}'`)
   }
 
   if (params?.date_from) {
-    const fromFilter = `date >= '${escapeFilterValue(params.date_from)}'`
-    filter = filter ? `${filter} && ${fromFilter}` : fromFilter
+    filters.push(`date >= '${escapeFilterValue(params.date_from)}'`)
   }
 
   if (params?.date_to) {
-    const toFilter = `date <= '${escapeFilterValue(params.date_to)}'`
-    filter = filter ? `${filter} && ${toFilter}` : toFilter
+    filters.push(`date <= '${escapeFilterValue(params.date_to)}'`)
   }
 
   if (params?.search) {
-    const searchFilter = `content ~ '${escapeFilterValue(params.search)}'`
-    filter = filter ? `${filter} && ${searchFilter}` : searchFilter
+    filters.push(`(title ~ '${escapeFilterValue(params.search)}' || content ~ '${escapeFilterValue(params.search)}' || verse_refs ~ '${escapeFilterValue(params.search)}')`)
   }
 
   const result = await pb.collection(COLLECTION).getList(page, perPage, {
-    filter: filter || undefined,
+    filter: filters.length > 0 ? filters.join(' && ') : undefined,
     sort: '-date',
   })
 
@@ -101,8 +104,14 @@ export async function listBibleNotes(params?: BibleNoteSearchParams): Promise<{
  */
 export async function getAllVerseRefs(): Promise<string[]> {
   const pb = getPocketBase()
+  const filters: string[] = []
+  const userId = pb.authStore.record?.id
+  if (userId) {
+    filters.push(`user_id = '${escapeFilterValue(userId)}'`)
+  }
   const result = await pb.collection(COLLECTION).getFullList({
     fields: 'verse_refs',
+    filter: filters.length > 0 ? filters.join(' && ') : undefined,
   })
   const refs = new Set<string>()
   for (const record of result) {

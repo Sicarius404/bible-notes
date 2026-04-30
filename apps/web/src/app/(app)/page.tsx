@@ -147,7 +147,7 @@ export default function HomePage() {
                 <Link key={note.id} href={`/bible-notes/${note.id}`} className="block">
                   <div className="p-2 rounded-md hover:bg-muted/50 transition-colors">
                     <p className="text-sm font-medium">{note.verse_refs?.[0] || 'Bible Note'}</p>
-                    <p className="text-xs text-muted-foreground">{note.date}</p>
+                    <p className="text-xs text-muted-foreground">{format(new Date(note.date), 'MMM d, yyyy')}</p>
                   </div>
                 </Link>
               ))
@@ -228,7 +228,7 @@ export default function HomePage() {
               <Link key={rev.id} href={`/revelations/${rev.id}`} className="block">
                 <div className="p-2 rounded-md hover:bg-muted/50 transition-colors">
                   <p className="text-sm">{rev.content.length > 100 ? rev.content.slice(0, 100) + '...' : rev.content}</p>
-                  <p className="text-xs text-muted-foreground">{rev.date}</p>
+                  <p className="text-xs text-muted-foreground">{format(new Date(rev.date), 'MMM d, yyyy')}</p>
                 </div>
               </Link>
             ))}

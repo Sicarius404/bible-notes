@@ -46,8 +46,14 @@ export async function deleteReadingPlan(id: string): Promise<void> {
 
 export async function listReadingPlans(): Promise<ReadingPlan[]> {
   const pb = getPocketBase()
+  const filters: string[] = []
+  const userId = pb.authStore.record?.id
+  if (userId) {
+    filters.push(`user_id = '${escapeFilterValue(userId)}'`)
+  }
   const result = await pb.collection(PLANS_COLLECTION).getFullList({
     sort: '-created_at',
+    filter: filters.length > 0 ? filters.join(' && ') : undefined,
   })
   return result as unknown as ReadingPlan[]
 }
@@ -114,8 +120,14 @@ export async function markDayComplete(
 
 export async function getPlanProgress(planId: string): Promise<ReadingPlanProgress[]> {
   const pb = getPocketBase()
+  const filters: string[] = []
+  const userId = pb.authStore.record?.id
+  if (userId) {
+    filters.push(`user_id = '${escapeFilterValue(userId)}'`)
+  }
+  filters.push(`plan_id = '${escapeFilterValue(planId)}'`)
   const result = await pb.collection(PROGRESS_COLLECTION).getFullList({
-    filter: `plan_id = '${escapeFilterValue(planId)}'`,
+    filter: filters.join(' && '),
     sort: 'day_number',
   })
   return result as unknown as ReadingPlanProgress[]
@@ -123,8 +135,14 @@ export async function getPlanProgress(planId: string): Promise<ReadingPlanProgre
 
 export async function getAllProgressRecords(): Promise<ReadingPlanProgress[]> {
   const pb = getPocketBase()
+  const filters: string[] = []
+  const userId = pb.authStore.record?.id
+  if (userId) {
+    filters.push(`user_id = '${escapeFilterValue(userId)}'`)
+  }
   const result = await pb.collection(PROGRESS_COLLECTION).getFullList({
     sort: 'day_number',
+    filter: filters.length > 0 ? filters.join(' && ') : undefined,
   })
   return result as unknown as ReadingPlanProgress[]
 }
