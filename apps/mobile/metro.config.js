@@ -1,22 +1,27 @@
 const { getDefaultConfig } = require('expo/metro-config')
 const path = require('path')
 
-const config = getDefaultConfig(__dirname)
+const projectRoot = __dirname
+const workspaceRoot = path.resolve(projectRoot, '../..')
+
+const config = getDefaultConfig(projectRoot)
+
+// Watch all workspace packages
+config.watchFolders = [
+  workspaceRoot,
+]
+
+// Resolve packages from both project root and workspace root
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, 'node_modules'),
+  path.resolve(workspaceRoot, 'node_modules'),
+]
 
 // Support for pnpm workspace packages
-const monorepoPackages = {
-  '@bible-notes/shared': path.resolve(__dirname, '../../packages/shared'),
-  '@bible-notes/pocketbase-client': path.resolve(__dirname, '../../packages/pocketbase-client'),
-}
-
 config.resolver.extraNodeModules = {
   ...config.resolver.extraNodeModules,
-  ...monorepoPackages,
+  '@bible-notes/shared': path.resolve(workspaceRoot, 'packages/shared'),
+  '@bible-notes/pocketbase-client': path.resolve(workspaceRoot, 'packages/pocketbase-client'),
 }
-
-config.watchFolders = [
-  path.resolve(__dirname, '../../packages/shared'),
-  path.resolve(__dirname, '../../packages/pocketbase-client'),
-]
 
 module.exports = config

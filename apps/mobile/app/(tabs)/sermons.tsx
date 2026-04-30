@@ -4,6 +4,9 @@ import { listSermons } from '@bible-notes/pocketbase-client'
 import type { Sermon } from '@bible-notes/shared'
 import { SERVICE_TYPE_LABELS } from '@bible-notes/shared'
 import { router } from 'expo-router'
+import { Card, CardTitle, CardSubtitle, Screen, EmptyState } from '../../components/ui'
+import { colors, spacing } from '../../theme'
+import { Plus } from 'lucide-react-native'
 
 export default function SermonsScreen() {
   const [sermons, setSermons] = useState<Sermon[]>([])
@@ -26,42 +29,74 @@ export default function SermonsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
+      <Screen style={styles.center}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </Screen>
     )
   }
 
   return (
-    <FlatList
-      data={sermons}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={{ padding: 16 }}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadSermons() }} />}
-      ListHeaderComponent={
-        <TouchableOpacity style={styles.newButton} onPress={() => router.push('/sermons/new')}>
-          <Text style={styles.newButtonText}>+ New</Text>
-        </TouchableOpacity>
-      }
-      renderItem={({ item }) => (
-        <TouchableOpacity style={styles.card} onPress={() => router.push(`/sermons/${item.id}`)}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.meta}>{item.pastor} · {item.campus} · {SERVICE_TYPE_LABELS[item.service_type]}</Text>
-          <Text style={styles.date}>{item.date}</Text>
-        </TouchableOpacity>
-      )}
-      ListEmptyComponent={<Text style={styles.empty}>No sermons yet</Text>}
-    />
+    <Screen>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/sermons/new')}
+        activeOpacity={0.85}
+      >
+        <Plus size={24} color={colors.textInverse} />
+      </TouchableOpacity>
+
+      <FlatList
+        data={sermons}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadSermons() }} tintColor={colors.primary} />
+        }
+        ListEmptyComponent={<EmptyState title="No sermons yet" subtitle="Tap the + button to add your first sermon note" />}
+        renderItem={({ item }) => (
+          <Card onPress={() => router.push(`/sermons/${item.id}`)}>
+            <CardTitle>{item.title}</CardTitle>
+            <CardSubtitle>{item.pastor} · {item.campus}</CardSubtitle>
+            <CardSubtitle style={{ marginTop: 4 }}>
+              <Text style={styles.badge}>{SERVICE_TYPE_LABELS[item.service_type]}</Text> · {item.date}
+            </CardSubtitle>
+          </Card>
+        )}
+      />
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  newButton: { backgroundColor: '#2563eb', padding: 12, borderRadius: 8, marginBottom: 8 },
-  newButtonText: { color: '#fff', textAlign: 'center', fontWeight: '600' },
-  card: { padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8, marginBottom: 8 },
-  title: { fontSize: 16, fontWeight: '500' },
-  meta: { fontSize: 13, color: '#666', marginTop: 4 },
-  date: { fontSize: 12, color: '#999', marginTop: 4 },
-  empty: { textAlign: 'center', marginTop: 40, color: '#999' },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: spacing.lg,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+elevation: 6,
+  },
+  badge: {
+    backgroundColor: colors.accent + '20',
+    color: colors.accentDark,
+    fontWeight: '600',
+    fontSize: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
 })

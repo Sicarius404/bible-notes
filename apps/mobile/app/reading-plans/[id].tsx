@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Button, Alert } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native'
 import { getReadingPlan, getPlanProgress, markDayComplete, deleteReadingPlan } from '@bible-notes/pocketbase-client'
 import type { ReadingPlan } from '@bible-notes/shared'
 import { useLocalSearchParams, router } from 'expo-router'
+import { Button, Screen } from '../../components/ui'
+import { colors, spacing, typography, shadows } from '../../theme'
 
 export default function ReadingPlanDetail() {
   const { id } = useLocalSearchParams()
@@ -64,56 +66,151 @@ export default function ReadingPlanDetail() {
     }
   }
 
+  const completedCount = completedDays.size
+  const totalDays = plan?.total_days || 0
+  const progressPercent = totalDays > 0 ? Math.round((completedCount / totalDays) * 100) : 0
+
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
+      <Screen style={styles.center}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </Screen>
     )
   }
 
   if (!plan) {
     return (
-      <View style={styles.center}>
-        <Text>Plan not found</Text>
-      </View>
+      <Screen style={styles.center}>
+        <Text style={styles.notFound}>Plan not found</Text>
+      </Screen>
     )
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.name}>{plan.name}</Text>
-      <Text style={styles.meta}>{plan.total_days} days · Started {plan.start_date}</Text>
-      
-      <View style={styles.daysContainer}>
-        {plan.plan_data.map((day) => (
-          <TouchableOpacity
-            key={day.day}
-            style={[styles.dayCard, completedDays.has(day.day) && styles.dayCardCompleted]}
-            onPress={() => toggleDay(day.day)}
-          >
-            <Text style={styles.dayNumber}>Day {day.day}</Text>
-            <Text style={styles.passages}>{day.passages.join(', ')}</Text>
-            {completedDays.has(day.day) && <Text style={styles.completedBadge}>✓</Text>}
-          </TouchableOpacity>
-        ))}
-      </View>
-      <View style={{ marginTop: 16 }}>
-        <Button title="Delete Plan" color="red" onPress={handleDelete} />
-      </View>
-    </ScrollView>
+    <Screen>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.name}>{plan.name}</Text>
+          <Text style={styles.meta}>{totalDays} days · Started {plan.start_date}</Text>
+
+          <View style={styles.progressSection}>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+            </View>
+            <View style={styles.progressInfo}>
+              <Text style={styles.progressText}>{completedCount} of {totalDays} days</Text>
+              <Text style={styles.progressPercent}>{progressPercent}%</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.daysContainer}>
+          {plan.plan_data.map((day) => {
+            const isCompleted = completedDays.has(day.day)
+            return (
+              <TouchableOpacity
+                key={day.day}
+                style={[styles.dayCard, isCompleted && styles.dayCardCompleted]}
+                onPress={() => toggleDay(day.day)}
+                activeOpacity={0.85}
+              >
+                <View style={styles.dayLeft}>
+                  <View style={[styles.dayCircle, isCompleted && styles.dayCircleCompleted]}>
+                    <Text style={[styles.dayNumber, isCompleted && styles.dayNumberCompleted]}>{day.day}</Text>
+                  </View>
+                  <View style={styles.dayInfo}>
+                    <Text style={[styles.dayLabel, isCompleted && styles.dayLabelCompleted]}>Day {day.day}</Text>
+                    <Text style={styles.passages}>{day.passages.join(', ')}</Text>
+                  </View>
+                </View>
+                {isCompleted && (
+                  <View style={styles.checkBadge}>
+                    <Text style={styles.checkText}></Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+
+        <View style={{ marginTop: spacing.lg, marginBottom: spacing.xxl }}>
+          <Button title="Delete Plan" onPress={handleDelete} variant="ghost" />
+        </View>
+      </ScrollView>
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  name: { fontSize: 22, fontWeight: '600', marginBottom: 4 },
-  meta: { fontSize: 14, color: '#666', marginBottom: 16 },
-  daysContainer: { gap: 8 },
-  dayCard: { padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  dayCardCompleted: { backgroundColor: '#dcfce7' },
-  dayNumber: { fontSize: 14, fontWeight: '500' },
-  passages: { fontSize: 12, color: '#666', flex: 1, marginLeft: 8 },
-  completedBadge: { fontSize: 16, color: '#16a34a', fontWeight: 'bold' },
+  center: { justifyContent: 'center', alignItems: 'center' },
+  notFound: { ...typography.body, color: colors.textMuted },
+  header: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+    ...shadows.md,
+  },
+  name: { ...typography.heading2, marginBottom: spacing.xs },
+  meta: { ...typography.bodySmall, color: colors.textMuted, marginBottom: spacing.md },
+  progressSection: { marginTop: spacing.sm },
+  progressBar: {
+    height: 8,
+    backgroundColor: colors.borderLight,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.accent,
+    borderRadius: 4,
+  },
+  progressInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
+  },
+  progressText: { ...typography.caption, color: colors.textSecondary },
+  progressPercent: { ...typography.caption, fontWeight: '700', color: colors.accentDark },
+  daysContainer: { gap: spacing.sm },
+  dayCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    ...shadows.sm,
+  },
+  dayCardCompleted: {
+    backgroundColor: '#f0f9f4',
+    borderWidth: 1.5,
+    borderColor: colors.success + '30',
+  },
+  dayLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  dayCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surfaceHighlight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  dayCircleCompleted: { backgroundColor: colors.success + '15' },
+  dayNumber: { fontSize: 14, fontWeight: '700', color: colors.textSecondary },
+  dayNumberCompleted: { color: colors.success },
+  dayInfo: { flex: 1 },
+  dayLabel: { fontSize: 15, fontWeight: '600', color: colors.text, marginBottom: 2 },
+  dayLabelCompleted: { color: colors.success },
+  passages: { fontSize: 13, color: colors.textMuted },
+  checkBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkText: { color: colors.textInverse, fontSize: 14, fontWeight: '700' },
 })

@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { View, Text, TextInput, Button, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
 import { router } from 'expo-router'
 import { createSermon } from '@bible-notes/pocketbase-client'
 import { SERVICE_TYPE_LABELS } from '@bible-notes/shared'
 import type { ServiceType } from '@bible-notes/shared'
+import { Input, Button, Screen } from '../../components/ui'
+import { RichTextInput } from '../../components/ui/RichTextInput'
+import { colors, spacing, typography } from '../../theme'
 
 const SERVICE_TYPES: ServiceType[] = ['morning', 'evening', 'special']
 
@@ -39,109 +42,117 @@ export default function NewSermonScreen() {
       })
       router.back()
     } catch (err) {
-      setError('Failed to create')
+      setError('Failed to create sermon')
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>New Sermon</Text>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+    <Screen>
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <View style={styles.form}>
+          <Text style={styles.title}>New Sermon</Text>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <Text style={styles.label}>Date</Text>
-      <TextInput
-        style={styles.input}
-        value={date}
-        onChangeText={setDate}
-        placeholder="YYYY-MM-DD"
-      />
+          <Input label="Date" value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" />
+          <Input label="Title" value={title} onChangeText={setTitle} placeholder="Sermon title" />
+          <Input label="Pastor" value={pastor} onChangeText={setPastor} placeholder="Pastor's name" />
+          <Input label="Campus" value={campus} onChangeText={setCampus} placeholder="Campus name" />
 
-      <Text style={styles.label}>Title</Text>
-      <TextInput
-        style={styles.input}
-        value={title}
-        onChangeText={setTitle}
-        placeholder="Sermon title"
-      />
+          <Text style={styles.label}>Service Type</Text>
+          <View style={styles.serviceTypeRow}>
+            {SERVICE_TYPES.map((type) => (
+              <TouchableOpacity
+                key={type}
+                style={[
+                  styles.serviceTypeButton,
+                  serviceType === type && styles.serviceTypeButtonActive,
+                ]}
+                onPress={() => setServiceType(type)}
+              >
+                <Text
+                  style={[
+                    styles.serviceTypeText,
+                    serviceType === type && styles.serviceTypeTextActive,
+                  ]}
+                >
+                  {SERVICE_TYPE_LABELS[type]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-      <Text style={styles.label}>Pastor</Text>
-      <TextInput
-        style={styles.input}
-        value={pastor}
-        onChangeText={setPastor}
-        placeholder="Pastor's name"
-      />
+          <RichTextInput
+            label="Content"
+            value={content}
+            onChangeText={setContent}
+            placeholder="Write your sermon notes..."
+          />
 
-      <Text style={styles.label}>Campus</Text>
-      <TextInput
-        style={styles.input}
-        value={campus}
-        onChangeText={setCampus}
-        placeholder="Campus name"
-      />
-
-      <Text style={styles.label}>Service Type</Text>
-      <View style={styles.serviceTypeRow}>
-        {SERVICE_TYPES.map((type) => (
-          <TouchableOpacity
-            key={type}
-            style={[
-              styles.serviceTypeButton,
-              serviceType === type && styles.serviceTypeButtonActive,
-            ]}
-            onPress={() => setServiceType(type)}
-          >
-            <Text
-              style={[
-                styles.serviceTypeText,
-                serviceType === type && styles.serviceTypeTextActive,
-              ]}
-            >
-              {SERVICE_TYPE_LABELS[type]}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={styles.label}>Content</Text>
-      <TextInput
-        style={[styles.input, styles.textarea]}
-        value={content}
-        onChangeText={setContent}
-        placeholder="Write your sermon notes..."
-        multiline
-        numberOfLines={6}
-        textAlignVertical="top"
-      />
-
-      <Button title={submitting ? 'Creating...' : 'Create'} onPress={handleSubmit} disabled={submitting} />
-    </ScrollView>
+          <View style={styles.buttonRow}>
+            <Button title={submitting ? 'Creating...' : 'Create Sermon'} onPress={handleSubmit} loading={submitting} style={{ flex: 1 }} />
+            <Button title="Cancel" onPress={() => router.back()} variant="outline" style={{ flex: 1 }} />
+          </View>
+        </View>
+      </ScrollView>
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 20 },
-  title: { fontSize: 24, fontWeight: '700', marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', marginBottom: 6, marginTop: 12 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, fontSize: 16 },
-  textarea: { minHeight: 140 },
-  error: { color: '#dc2626', marginBottom: 12 },
-  serviceTypeRow: { flexDirection: 'row', gap: 8 },
+  form: {
+    paddingTop: spacing.lg,
+  },
+  title: {
+    ...typography.heading2,
+    marginBottom: spacing.lg,
+  },
+  error: {
+    ...typography.bodySmall,
+    color: colors.error,
+    marginBottom: spacing.md,
+    backgroundColor: 'rgba(192,57,43,0.08)',
+    padding: spacing.md,
+    borderRadius: 12,
+  },
+  label: {
+    ...typography.bodySmall,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  serviceTypeRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
   serviceTypeButton: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: colors.border,
     alignItems: 'center',
+    backgroundColor: colors.surface,
   },
   serviceTypeButtonActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#2563eb',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
-  serviceTypeText: { fontSize: 14, color: '#333' },
-  serviceTypeTextActive: { color: '#fff', fontWeight: '600' },
+  serviceTypeText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textSecondary,
+  },
+  serviceTypeTextActive: {
+    color: colors.textInverse,
+    fontWeight: '600',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xxl,
+  },
 })

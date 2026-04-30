@@ -2,11 +2,15 @@ import PocketBase from 'pocketbase'
 
 let pbInstance: PocketBase | null = null
 
+function getPublicPocketBaseUrl(): string | undefined {
+  return process.env.EXPO_PUBLIC_POCKETBASE_URL || process.env.NEXT_PUBLIC_POCKETBASE_URL
+}
+
 /**
  * Get or create a PocketBase client instance.
  *
- * Browser: Uses NEXT_PUBLIC_POCKETBASE_URL env var, or falls back to
- *          window.location.origin + '/api' (proxied through Nginx in production).
+ * Expo:    Uses EXPO_PUBLIC_POCKETBASE_URL.
+ * Browser: Uses NEXT_PUBLIC_POCKETBASE_URL, or falls back to window.location.origin.
  * SSR:     Uses POCKETBASE_URL env var (internal Docker hostname), or localhost.
  */
 export function getPocketBase(url?: string): PocketBase {
@@ -15,9 +19,11 @@ export function getPocketBase(url?: string): PocketBase {
   let pbUrl: string
   if (url) {
     pbUrl = url
-  } else if (typeof window !== 'undefined') {
-    // Browser: use public URL (proxied through Nginx) or same-origin /api path
-    pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL || window.location.origin
+  } else if (getPublicPocketBaseUrl()) {
+    pbUrl = getPublicPocketBaseUrl() as string
+  } else if (typeof window !== 'undefined' && window.location?.origin) {
+    // Browser: fall back to the current origin when no explicit public URL is set
+    pbUrl = window.location.origin
   } else {
     // SSR: use internal URL (Docker network or localhost)
     pbUrl = process.env.POCKETBASE_URL || 'http://localhost:8090'

@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, TextInput, Button } from 'react-native'
+import { View, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Text } from 'react-native'
 import { listRevelations, createRevelation } from '@bible-notes/pocketbase-client'
 import type { Revelation } from '@bible-notes/shared'
 import { router } from 'expo-router'
+import { Card, CardSubtitle, Screen, EmptyState, Input, Button } from '../../components/ui'
+import { colors, spacing } from '../../theme'
 
 export default function RevelationsScreen() {
   const [revelations, setRevelations] = useState<Revelation[]>([])
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   const loadRevelations = async () => {
     try {
@@ -26,64 +29,92 @@ export default function RevelationsScreen() {
 
   const handleCreate = async () => {
     if (!content.trim()) return
+    setSubmitting(true)
     try {
       await createRevelation({ content: content.trim() })
       setContent('')
       loadRevelations()
     } catch (err) {
       console.error(err)
+    } finally {
+      setSubmitting(false)
     }
   }
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
+      <Screen style={styles.center}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </Screen>
     )
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          placeholder="Jot down a revelation..."
+    <Screen>
+      <View style={styles.inputArea}>
+        <Input
           value={content}
           onChangeText={setContent}
+          placeholder="Jot down a revelation..."
+          multiline
+          numberOfLines={3}
+          style={{ marginBottom: spacing.sm }}
         />
-        <Button title="Add" onPress={handleCreate} />
+        <View style={styles.inputActions}>
+          <Button
+            title="Add"
+            onPress={handleCreate}
+            loading={submitting}
+            size="sm"
+            disabled={!content.trim()}
+          />
+          <Button
+            title="Full Form"
+            onPress={() => router.push('/revelations/new')}
+            variant="outline"
+            size="sm"
+          />
+        </View>
       </View>
+
       <FlatList
         data={revelations}
         keyExtractor={(item) => item.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadRevelations() }} />}
-        ListHeaderComponent={
-          <TouchableOpacity style={styles.newButton} onPress={() => router.push('/revelations/new')}>
-            <Text style={styles.newButtonText}>+ New</Text>
-          </TouchableOpacity>
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadRevelations() }} tintColor={colors.primary} />
         }
+        ListEmptyComponent={<EmptyState title="No revelations yet" subtitle="Write down what God reveals to you" />}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} onPress={() => router.push(`/revelations/${item.id}`)}>
-            <Text numberOfLines={3} style={styles.content}>{item.content}</Text>
-            <Text style={styles.date}>{item.date}</Text>
-          </TouchableOpacity>
+          <Card onPress={() => router.push(`/revelations/${item.id}`)}>
+            <CardSubtitle numberOfLines={3}>{item.content}</CardSubtitle>
+            <CardSubtitle style={{ marginTop: 8 }}>{item.date}</CardSubtitle>
+          </Card>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No revelations yet</Text>}
       />
-    </View>
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  inputRow: { flexDirection: 'row', padding: 16, gap: 8, alignItems: 'center' },
-  input: { flex: 1, borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10 },
-  newButton: { backgroundColor: '#2563eb', padding: 12, borderRadius: 8, marginHorizontal: 16, marginTop: 8, marginBottom: 8 },
-  newButtonText: { color: '#fff', textAlign: 'center', fontWeight: '600' },
-  card: { padding: 12, backgroundColor: '#f5f5f5', marginHorizontal: 16, marginBottom: 8, borderRadius: 8 },
-  content: { fontSize: 14 },
-  date: { fontSize: 12, color: '#666', marginTop: 4 },
-  empty: { textAlign: 'center', marginTop: 40, color: '#999' },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputArea: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  inputActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    justifyContent: 'flex-end',
+  },
 })

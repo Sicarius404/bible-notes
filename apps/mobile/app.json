@@ -2,12 +2,13 @@
   "expo": {
     "name": "Bible Notes",
     "slug": "bible-notes",
+    "scheme": "biblenotes",
     "version": "0.1.0",
     "orientation": "portrait",
-      "icon": "./assets/icon.svg",
+      "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.svg",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -20,7 +21,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.svg",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "co.za.zonit.biblenotes"
@@ -31,10 +32,16 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Bible Notes to use Face ID for secure login."
+        }
+      ]
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": false
     }
   }
 }

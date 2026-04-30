@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TextInput, Button, Alert } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native'
 import { getSmallGroupNote, updateSmallGroupNote, deleteSmallGroupNote } from '@bible-notes/pocketbase-client'
 import type { SmallGroupNote } from '@bible-notes/shared'
 import { useLocalSearchParams, router } from 'expo-router'
+import { Input, Button, Screen } from '../../components/ui'
+import { RichTextInput } from '../../components/ui/RichTextInput'
+import { MarkdownContent } from '../../components/ui/MarkdownContent'
+import { colors, spacing, typography } from '../../theme'
 
 export default function SmallGroupDetail() {
   const { id } = useLocalSearchParams()
   const [note, setNote] = useState<SmallGroupNote | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [editForm, setEditForm] = useState({ date: '', topic: '', attendees: '', content: '' })
 
   useEffect(() => {
@@ -33,6 +38,7 @@ export default function SmallGroupDetail() {
   }
 
   const handleUpdate = async () => {
+    setSaving(true)
     try {
       await updateSmallGroupNote(id as string, editForm)
       setIsEditing(false)
@@ -40,6 +46,8 @@ export default function SmallGroupDetail() {
       await loadNote()
     } catch (err) {
       console.error(err)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -63,83 +71,70 @@ export default function SmallGroupDetail() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
+      <Screen style={styles.center}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </Screen>
     )
   }
 
   if (!note) {
     return (
-      <View style={styles.center}>
-        <Text>Note not found</Text>
-      </View>
+      <Screen style={styles.center}>
+        <Text style={styles.notFound}>Note not found</Text>
+      </Screen>
     )
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {isEditing ? (
-        <View>
-          <Text style={styles.label}>Date</Text>
-          <TextInput
-            style={styles.input}
-            value={editForm.date}
-            onChangeText={(v) => setEditForm({ ...editForm, date: v })}
-            placeholder="YYYY-MM-DD"
-          />
-          <Text style={styles.label}>Topic</Text>
-          <TextInput
-            style={styles.input}
-            value={editForm.topic}
-            onChangeText={(v) => setEditForm({ ...editForm, topic: v })}
-            placeholder="Topic"
-          />
-          <Text style={styles.label}>Attendees</Text>
-          <TextInput
-            style={styles.input}
-            value={editForm.attendees}
-            onChangeText={(v) => setEditForm({ ...editForm, attendees: v })}
-            placeholder="Attendees"
-          />
-          <Text style={styles.label}>Content</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={editForm.content}
-            onChangeText={(v) => setEditForm({ ...editForm, content: v })}
-            placeholder="Note content"
-            multiline
-          />
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
-            <Button title="Save" onPress={handleUpdate} />
-            <Button title="Cancel" onPress={() => setIsEditing(false)} />
+    <Screen>
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        {isEditing ? (
+          <View style={styles.form}>
+            <Text style={styles.formTitle}>Edit Small Group Note</Text>
+            <Input label="Date" value={editForm.date} onChangeText={(v) => setEditForm({ ...editForm, date: v })} placeholder="YYYY-MM-DD" />
+            <Input label="Topic" value={editForm.topic} onChangeText={(v) => setEditForm({ ...editForm, topic: v })} placeholder="Topic" />
+            <Input label="Attendees" value={editForm.attendees} onChangeText={(v) => setEditForm({ ...editForm, attendees: v })} placeholder="Attendees" />
+            <RichTextInput
+              label="Content"
+              value={editForm.content}
+              onChangeText={(v) => setEditForm({ ...editForm, content: v })}
+              placeholder="Note content"
+            />
+            <View style={styles.buttonRow}>
+              <Button title="Save Changes" onPress={handleUpdate} loading={saving} style={{ flex: 1 }} />
+              <Button title="Cancel" onPress={() => setIsEditing(false)} variant="outline" style={{ flex: 1 }} />
+            </View>
           </View>
-        </View>
-      ) : (
-        <View>
-          <Text style={styles.topic}>{note.topic}</Text>
-          <Text style={styles.date}>{note.date}</Text>
-          <Text style={styles.label}>Attendees</Text>
-          <Text style={styles.content}>{note.attendees}</Text>
-          <Text style={styles.label}>Content</Text>
-          <Text style={styles.content}>{note.content}</Text>
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
-            <Button title="Edit" onPress={() => setIsEditing(true)} />
-            <Button title="Delete" color="red" onPress={handleDelete} />
+        ) : (
+          <View style={styles.view}>
+            <Text style={styles.topic}>{note.topic}</Text>
+            <Text style={styles.date}>{note.date}</Text>
+            <View style={styles.divider} />
+            <Text style={styles.sectionLabel}>Attendees</Text>
+            <Text style={styles.content}>{note.attendees}</Text>
+            <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>Content</Text>
+            <MarkdownContent content={note.content} />
+            <View style={styles.buttonRow}>
+              <Button title="Edit" onPress={() => setIsEditing(true)} variant="outline" style={{ flex: 1 }} />
+              <Button title="Delete" onPress={handleDelete} variant="ghost" style={{ flex: 1 }} />
+            </View>
           </View>
-        </View>
-      )}
-    </ScrollView>
+        )}
+      </ScrollView>
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  topic: { fontSize: 22, fontWeight: '600', marginBottom: 8 },
-  date: { fontSize: 14, color: '#666', marginBottom: 16 },
-  label: { fontSize: 14, fontWeight: '600', color: '#666', marginTop: 16, marginBottom: 4 },
-  content: { fontSize: 16, lineHeight: 24 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 8 },
-  textArea: { minHeight: 120, textAlignVertical: 'top' },
+  center: { justifyContent: 'center', alignItems: 'center' },
+  notFound: { ...typography.body, color: colors.textMuted },
+  form: { paddingTop: spacing.lg },
+  formTitle: { ...typography.heading2, marginBottom: spacing.lg },
+  view: { paddingTop: spacing.lg },
+  topic: { ...typography.heading2, marginBottom: spacing.sm },
+  date: { ...typography.bodySmall, color: colors.textMuted, marginBottom: spacing.md },
+  divider: { height: 1, backgroundColor: colors.borderLight, marginBottom: spacing.md },
+  sectionLabel: { ...typography.heading4, color: colors.textSecondary, marginBottom: spacing.sm },
+  content: { ...typography.body, lineHeight: 26, color: colors.text },
+  buttonRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl, marginBottom: spacing.xxl },
 })

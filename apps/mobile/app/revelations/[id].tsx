@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TextInput, Button, Alert } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native'
 import { getRevelation, updateRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
 import type { Revelation } from '@bible-notes/shared'
 import { useLocalSearchParams, router } from 'expo-router'
+import { Input, Button, Screen } from '../../components/ui'
+import { RichTextInput } from '../../components/ui/RichTextInput'
+import { MarkdownContent } from '../../components/ui/MarkdownContent'
+import { colors, spacing, typography } from '../../theme'
 
 export default function RevelationDetail() {
   const { id } = useLocalSearchParams()
   const [revelation, setRevelation] = useState<Revelation | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [editForm, setEditForm] = useState({ date: '', content: '' })
 
   useEffect(() => {
@@ -31,6 +36,7 @@ export default function RevelationDetail() {
   }
 
   const handleUpdate = async () => {
+    setSaving(true)
     try {
       await updateRevelation(id as string, editForm)
       setIsEditing(false)
@@ -38,6 +44,8 @@ export default function RevelationDetail() {
       await loadRevelation()
     } catch (err) {
       console.error(err)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -61,64 +69,61 @@ export default function RevelationDetail() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
+      <Screen style={styles.center}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </Screen>
     )
   }
 
   if (!revelation) {
     return (
-      <View style={styles.center}>
-        <Text>Revelation not found</Text>
-      </View>
+      <Screen style={styles.center}>
+        <Text style={styles.notFound}>Revelation not found</Text>
+      </Screen>
     )
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {isEditing ? (
-        <View>
-          <Text style={styles.label}>Date</Text>
-          <TextInput
-            style={styles.input}
-            value={editForm.date}
-            onChangeText={(v) => setEditForm({ ...editForm, date: v })}
-            placeholder="YYYY-MM-DD"
-          />
-          <Text style={styles.label}>Content</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={editForm.content}
-            onChangeText={(v) => setEditForm({ ...editForm, content: v })}
-            placeholder="Revelation content"
-            multiline
-          />
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
-            <Button title="Save" onPress={handleUpdate} />
-            <Button title="Cancel" onPress={() => setIsEditing(false)} />
+    <Screen>
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        {isEditing ? (
+          <View style={styles.form}>
+            <Text style={styles.formTitle}>Edit Revelation</Text>
+            <Input label="Date" value={editForm.date} onChangeText={(v) => setEditForm({ ...editForm, date: v })} placeholder="YYYY-MM-DD" />
+            <RichTextInput
+              label="Content"
+              value={editForm.content}
+              onChangeText={(v) => setEditForm({ ...editForm, content: v })}
+              placeholder="Revelation content"
+            />
+            <View style={styles.buttonRow}>
+              <Button title="Save Changes" onPress={handleUpdate} loading={saving} style={{ flex: 1 }} />
+              <Button title="Cancel" onPress={() => setIsEditing(false)} variant="outline" style={{ flex: 1 }} />
+            </View>
           </View>
-        </View>
-      ) : (
-        <View>
-          <Text style={styles.date}>{revelation.date}</Text>
-          <Text style={styles.content}>{revelation.content}</Text>
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
-            <Button title="Edit" onPress={() => setIsEditing(true)} />
-            <Button title="Delete" color="red" onPress={handleDelete} />
+        ) : (
+          <View style={styles.view}>
+            <Text style={styles.date}>{revelation.date}</Text>
+            <View style={styles.divider} />
+            <MarkdownContent content={revelation.content} />
+            <View style={styles.buttonRow}>
+              <Button title="Edit" onPress={() => setIsEditing(true)} variant="outline" style={{ flex: 1 }} />
+              <Button title="Delete" onPress={handleDelete} variant="ghost" style={{ flex: 1 }} />
+            </View>
           </View>
-        </View>
-      )}
-    </ScrollView>
+        )}
+      </ScrollView>
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  date: { fontSize: 14, color: '#666', marginBottom: 16 },
-  content: { fontSize: 16, lineHeight: 24 },
-  label: { fontSize: 14, fontWeight: '600', color: '#666', marginTop: 12, marginBottom: 4 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 8 },
-  textArea: { minHeight: 120, textAlignVertical: 'top' },
+  center: { justifyContent: 'center', alignItems: 'center' },
+  notFound: { ...typography.body, color: colors.textMuted },
+  form: { paddingTop: spacing.lg },
+  formTitle: { ...typography.heading2, marginBottom: spacing.lg },
+  view: { paddingTop: spacing.lg },
+  date: { ...typography.bodySmall, color: colors.textMuted, marginBottom: spacing.md },
+  divider: { height: 1, backgroundColor: colors.borderLight, marginBottom: spacing.md },
+  buttonRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl, marginBottom: spacing.xxl },
 })

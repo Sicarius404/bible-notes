@@ -1,7 +1,10 @@
 import { useState } from 'react'
-import { View, Text, TextInput, Button, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import { router } from 'expo-router'
 import { createSmallGroupNote } from '@bible-notes/pocketbase-client'
+import { Input, Button, Screen } from '../../components/ui'
+import { RichTextInput } from '../../components/ui/RichTextInput'
+import { colors, spacing, typography } from '../../theme'
 
 export default function NewSmallGroupNoteScreen() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -31,63 +34,59 @@ export default function NewSmallGroupNoteScreen() {
       })
       router.back()
     } catch (err) {
-      setError('Failed to create')
+      setError('Failed to create note')
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>New Small Group Note</Text>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+    <Screen>
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <View style={styles.form}>
+          <Text style={styles.title}>New Small Group Note</Text>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <Text style={styles.label}>Date</Text>
-      <TextInput
-        style={styles.input}
-        value={date}
-        onChangeText={setDate}
-        placeholder="YYYY-MM-DD"
-      />
+          <Input label="Date" value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" />
+          <Input label="Topic" value={topic} onChangeText={setTopic} placeholder="Topic of discussion" />
+          <Input label="Attendees" value={attendees} onChangeText={setAttendees} placeholder="Names of attendees" />
+          <RichTextInput
+            label="Content"
+            value={content}
+            onChangeText={setContent}
+            placeholder="Write your notes..."
+          />
 
-      <Text style={styles.label}>Topic</Text>
-      <TextInput
-        style={styles.input}
-        value={topic}
-        onChangeText={setTopic}
-        placeholder="Topic of discussion"
-      />
-
-      <Text style={styles.label}>Attendees</Text>
-      <TextInput
-        style={styles.input}
-        value={attendees}
-        onChangeText={setAttendees}
-        placeholder="Names of attendees"
-      />
-
-      <Text style={styles.label}>Content</Text>
-      <TextInput
-        style={[styles.input, styles.textarea]}
-        value={content}
-        onChangeText={setContent}
-        placeholder="Write your notes..."
-        multiline
-        numberOfLines={6}
-        textAlignVertical="top"
-      />
-
-      <Button title={submitting ? 'Creating...' : 'Create'} onPress={handleSubmit} disabled={submitting} />
-    </ScrollView>
+          <View style={styles.buttonRow}>
+            <Button title={submitting ? 'Creating...' : 'Create Note'} onPress={handleSubmit} loading={submitting} style={{ flex: 1 }} />
+            <Button title="Cancel" onPress={() => router.back()} variant="outline" style={{ flex: 1 }} />
+          </View>
+        </View>
+      </ScrollView>
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 20 },
-  title: { fontSize: 24, fontWeight: '700', marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', marginBottom: 6, marginTop: 12 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, fontSize: 16 },
-  textarea: { minHeight: 140 },
-  error: { color: '#dc2626', marginBottom: 12 },
+  form: {
+    paddingTop: spacing.lg,
+  },
+  title: {
+    ...typography.heading2,
+    marginBottom: spacing.lg,
+  },
+  error: {
+    ...typography.bodySmall,
+    color: colors.error,
+    marginBottom: spacing.md,
+    backgroundColor: 'rgba(192,57,43,0.08)',
+    padding: spacing.md,
+    borderRadius: 12,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xxl,
+  },
 })

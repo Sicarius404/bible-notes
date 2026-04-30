@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import { colors, spacing, typography, shadows, radius } from '../theme'
 import { BookOpen, Mail, Lock, Fingerprint } from 'lucide-react-native'
 import {
   isBiometricAvailable,
-  hasStoredCredentials,
+  hasStoredCredentials as checkStoredCredentials,
   getCredentials,
   promptBiometricLogin,
   promptBiometricSetup,
@@ -31,30 +31,18 @@ import {
 const { width } = Dimensions.get('window')
 
 export default function LoginScreen() {
-  const { refreshUser, biometricAvailable } = useAuth()
+  const { refreshUser, biometricAvailable, hasStoredCredentials } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showEnableModal, setShowEnableModal] = useState(false)
-  const [hasCreds, setHasCreds] = useState(false)
-
-  useEffect(() => {
-    const check = async () => {
-      const available = await isBiometricAvailable()
-      if (available) {
-        const creds = await hasStoredCredentials()
-        setHasCreds(creds)
-      }
-    }
-    check()
-  }, [])
 
   const attemptFingerprintLogin = async () => {
     const creds = await getCredentials()
     if (!creds) {
       setError('No saved credentials. Please log in with your password first.')
-      setHasCreds(false)
+      await refreshUser()
       return
     }
 
@@ -77,7 +65,7 @@ export default function LoginScreen() {
       console.error('Fingerprint login error:', err)
       if (err?.message?.includes('Invalid') || err?.message?.includes('Failed')) {
         await clearCredentials()
-        setHasCreds(false)
+        await refreshUser()
         setError('Password changed. Please log in with your password.')
       } else {
         setError(`Fingerprint login failed: ${err?.message || 'Unknown error'}`)
@@ -100,7 +88,7 @@ export default function LoginScreen() {
       await refreshUser()
 
       const available = await isBiometricAvailable()
-      const credsStored = await hasStoredCredentials()
+      const credsStored = await checkStoredCredentials()
       if (available && !credsStored) {
         setShowEnableModal(true)
       } else {
@@ -120,7 +108,6 @@ export default function LoginScreen() {
       const result = await promptBiometricSetup()
       if (result.success) {
         await saveCredentials(email, password)
-        setHasCreds(true)
         console.log('[login] Fingerprint enabled and credentials saved')
       } else {
         console.log('[login] Fingerprint setup cancelled:', result)
@@ -189,7 +176,7 @@ export default function LoginScreen() {
                 style={{ marginTop: spacing.md }}
               />
 
-              {biometricAvailable && hasCreds && (
+              {biometricAvailable && hasStoredCredentials && (
                 <>
                   <View style={styles.divider}>
                     <View style={styles.dividerLine} />

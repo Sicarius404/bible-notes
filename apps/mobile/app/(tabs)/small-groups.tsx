@@ -3,6 +3,9 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, 
 import { listSmallGroupNotes } from '@bible-notes/pocketbase-client'
 import type { SmallGroupNote } from '@bible-notes/shared'
 import { router } from 'expo-router'
+import { Card, CardTitle, CardSubtitle, Screen, EmptyState } from '../../components/ui'
+import { colors, spacing } from '../../theme'
+import { Plus } from 'lucide-react-native'
 
 export default function SmallGroupsScreen() {
   const [notes, setNotes] = useState<SmallGroupNote[]>([])
@@ -25,42 +28,64 @@ export default function SmallGroupsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
+      <Screen style={styles.center}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </Screen>
     )
   }
 
   return (
-    <FlatList
-      data={notes}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={{ padding: 16 }}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadNotes() }} />}
-      ListHeaderComponent={
-        <TouchableOpacity style={styles.newButton} onPress={() => router.push('/small-groups/new')}>
-          <Text style={styles.newButtonText}>+ New</Text>
-        </TouchableOpacity>
-      }
-      renderItem={({ item }) => (
-        <TouchableOpacity style={styles.card} onPress={() => router.push(`/small-groups/${item.id}`)}>
-          <Text style={styles.topic}>{item.topic}</Text>
-          <Text style={styles.date}>{item.date}</Text>
-          <Text numberOfLines={2} style={styles.preview}>{item.content}</Text>
-        </TouchableOpacity>
-      )}
-      ListEmptyComponent={<Text style={styles.empty}>No small group notes yet</Text>}
-    />
+    <Screen>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/small-groups/new')}
+        activeOpacity={0.85}
+      >
+        <Plus size={24} color={colors.textInverse} />
+      </TouchableOpacity>
+
+      <FlatList
+        data={notes}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadNotes() }} tintColor={colors.primary} />
+        }
+        ListEmptyComponent={<EmptyState title="No small group notes yet" subtitle="Tap the + button to add your first note" />}
+        renderItem={({ item }) => (
+          <Card onPress={() => router.push(`/small-groups/${item.id}`)}>
+            <CardTitle>{item.topic}</CardTitle>
+            <CardSubtitle>{item.date}</CardSubtitle>
+            <CardSubtitle numberOfLines={2} style={{ marginTop: 4 }}>
+              {item.content}
+            </CardSubtitle>
+          </Card>
+        )}
+      />
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  newButton: { backgroundColor: '#2563eb', padding: 12, borderRadius: 8, marginBottom: 8 },
-  newButtonText: { color: '#fff', textAlign: 'center', fontWeight: '600' },
-  card: { padding: 12, backgroundColor: '#f5f5f5', borderRadius: 8, marginBottom: 8 },
-  topic: { fontSize: 16, fontWeight: '500' },
-  date: { fontSize: 12, color: '#666', marginTop: 4 },
-  preview: { fontSize: 14, color: '#333', marginTop: 4 },
-  empty: { textAlign: 'center', marginTop: 40, color: '#999' },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: spacing.lg,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
 })

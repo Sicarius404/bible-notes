@@ -48,6 +48,10 @@ export async function getCredentials(): Promise<StoredCredentials | null> {
 
 export async function clearCredentials(): Promise<void> {
   await SecureStore.deleteItemAsync(CREDENTIALS_KEY)
+  await clearSessionTimestamp()
+}
+
+export async function clearSessionTimestamp(): Promise<void> {
   await SecureStore.deleteItemAsync(LAST_AUTH_KEY)
 }
 

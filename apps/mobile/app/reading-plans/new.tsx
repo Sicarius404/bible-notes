@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { View, Text, TextInput, Button, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, ScrollView, StyleSheet, TextInput } from 'react-native'
 import { router } from 'expo-router'
 import { createReadingPlan } from '@bible-notes/pocketbase-client'
 import type { ReadingPlanDay } from '@bible-notes/shared'
+import { Input, Button, Screen } from '../../components/ui'
+import { colors, spacing, typography } from '../../theme'
 
 interface DayEntry {
   key: string
@@ -74,70 +76,97 @@ export default function NewReadingPlanScreen() {
       })
       router.back()
     } catch (err) {
-      setError('Failed to create')
+      setError('Failed to create reading plan')
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>New Reading Plan</Text>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+    <Screen>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.form}>
+          <Text style={styles.title}>New Reading Plan</Text>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        style={styles.input}
-        value={name}
-        onChangeText={setName}
-        placeholder="Plan name"
-      />
-
-      <Text style={styles.label}>Total Days</Text>
-      <TextInput
-        style={styles.input}
-        value={totalDays}
-        onChangeText={handleTotalDaysChange}
-        placeholder="Number of days"
-        keyboardType="number-pad"
-      />
-
-      <Text style={styles.label}>Start Date</Text>
-      <TextInput
-        style={styles.input}
-        value={startDate}
-        onChangeText={setStartDate}
-        placeholder="YYYY-MM-DD"
-      />
-
-      <Text style={styles.sectionHeader}>Days</Text>
-      {days.map((day, index) => (
-        <View key={day.key} style={styles.dayRow}>
-          <Text style={styles.dayLabel}>Day {index + 1}</Text>
-          <TextInput
-            style={[styles.input, styles.dayInput]}
-            value={day.passages}
-            onChangeText={(text) => updateDayPassages(day.key, text)}
-            placeholder="Passages (comma-separated)"
+          <Input label="Name" value={name} onChangeText={setName} placeholder="Plan name" />
+          <Input
+            label="Total Days"
+            value={totalDays}
+            onChangeText={handleTotalDaysChange}
+            placeholder="Number of days"
+            keyboardType="number-pad"
           />
-        </View>
-      ))}
+          <Input label="Start Date" value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" />
 
-      <Button title={submitting ? 'Creating...' : 'Create'} onPress={handleSubmit} disabled={submitting} />
-    </ScrollView>
+          <Text style={styles.sectionHeader}>Daily Passages</Text>
+          {days.map((day, index) => (
+            <View key={day.key} style={styles.dayRow}>
+              <Text style={styles.dayLabel}>Day {index + 1}</Text>
+              <TextInput
+                style={styles.dayInput}
+                value={day.passages}
+                onChangeText={(text) => updateDayPassages(day.key, text)}
+                placeholder="Passages (comma-separated)"
+                placeholderTextColor={colors.textMuted}
+              />
+            </View>
+          ))}
+
+          <View style={styles.buttonRow}>
+            <Button title={submitting ? 'Creating...' : 'Create Plan'} onPress={handleSubmit} loading={submitting} style={{ flex: 1 }} />
+            <Button title="Cancel" onPress={() => router.back()} variant="outline" style={{ flex: 1 }} />
+          </View>
+        </View>
+      </ScrollView>
+    </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 20 },
-  title: { fontSize: 24, fontWeight: '700', marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', marginBottom: 6, marginTop: 12 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, fontSize: 16 },
-  textarea: { minHeight: 140 },
-  error: { color: '#dc2626', marginBottom: 12 },
-  sectionHeader: { fontSize: 18, fontWeight: '700', marginTop: 24, marginBottom: 12 },
-  dayRow: { marginBottom: 12 },
-  dayLabel: { fontSize: 13, fontWeight: '600', marginBottom: 4, color: '#555' },
-  dayInput: { fontSize: 14 },
+  form: {
+    paddingTop: spacing.lg,
+  },
+  title: {
+    ...typography.heading2,
+    marginBottom: spacing.lg,
+  },
+  error: {
+    ...typography.bodySmall,
+    color: colors.error,
+    marginBottom: spacing.md,
+    backgroundColor: 'rgba(192,57,43,0.08)',
+    padding: spacing.md,
+    borderRadius: 12,
+  },
+  sectionHeader: {
+    ...typography.heading3,
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  dayRow: {
+    marginBottom: spacing.md,
+  },
+  dayLabel: {
+    ...typography.bodySmall,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  dayInput: {
+    backgroundColor: colors.surfaceHighlight,
+    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md - 2,
+    fontSize: 16,
+    color: colors.text,
+    borderWidth: 1.5,
+    borderColor: colors.borderLight,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xxl,
+  },
 })
