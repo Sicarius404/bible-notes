@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
-import { listSermons, getAllCampuses } from '@bible-notes/pocketbase-client'
+import { listSermons, getAllCampuses, deleteSermon } from '@bible-notes/pocketbase-client'
 import { SERVICE_TYPES, SERVICE_TYPE_LABELS } from '@bible-notes/shared'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,8 +20,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { Search, Plus, ChevronLeft, ChevronRight, Church } from 'lucide-react'
+import { Search, Plus, ChevronLeft, ChevronRight, Church, Trash2 } from 'lucide-react'
 import type { ServiceType } from '@bible-notes/shared'
+import MobileSearchBar from '@/components/mobile-search-bar'
+import DeleteDialog from '@/components/delete-dialog'
+import type { FilterConfig } from '@/components/filter-sheet'
+
+const filterConfig: FilterConfig[] = [
+  { key: 'pastor', label: 'Pastor', type: 'text' },
+  { key: 'campus', label: 'Campus', type: 'text' },
+  { key: 'date_from', label: 'From Date', type: 'date' },
+  { key: 'date_to', label: 'To Date', type: 'date' },
+]
 
 export default function SermonsPage() {
   const [search, setSearch] = useState('')
@@ -33,6 +43,7 @@ export default function SermonsPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { data: campuses } = useQuery({
     queryKey: ['campuses'],
@@ -57,6 +68,16 @@ export default function SermonsPage() {
       }),
   })
 
+  const queryClient = useQueryClient()
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteSermon(id),
+    onSuccess: () => {
+      setDeleteId(null)
+      queryClient.invalidateQueries({ queryKey: ['sermons'] })
+    },
+  })
+
   const handleSearch = () => {
     setPage(1)
   }
@@ -77,6 +98,25 @@ export default function SermonsPage() {
     setPage(1)
   }
 
+  const handleMobileSearch = (query: string) => {
+    setSearch(query)
+    setPage(1)
+  }
+
+  const handleMobileFilter = (filters: Record<string, string>) => {
+    setPastor(filters.pastor || '')
+    setCampus(filters.campus || '')
+    setDateFrom(filters.date_from || '')
+    setDateTo(filters.date_to || '')
+    setPage(1)
+  }
+
+  const handleDelete = () => {
+    if (deleteId) {
+      deleteMutation.mutate(deleteId)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -86,16 +126,27 @@ export default function SermonsPage() {
           </h2>
           <p className="text-muted-foreground">Browse and manage sermon notes</p>
         </div>
-        <Link href="/sermons/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-1" />
-            New Sermon
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <div className="md:hidden">
+            <MobileSearchBar
+              onSearchChange={handleMobileSearch}
+              onFilterChange={handleMobileFilter}
+              filterConfig={filterConfig}
+              placeholder="Search sermons..."
+            />
+          </div>
+          <Link href="/sermons/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-1" />
+              New Sermon
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}
-      <Card>
+      <div className="hidden md:block">
+        <Card>
         <CardContent className="p-6 space-y-4">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="flex-1">
@@ -185,6 +236,7 @@ export default function SermonsPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
 
       {/* Results */}
       <div className="space-y-3">
@@ -218,33 +270,47 @@ export default function SermonsPage() {
         )}
 
         {data?.items.map((sermon) => (
-          <Link key={sermon.id} href={`/sermons/${sermon.id}`} className="block">
-            <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">{sermon.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {sermon.pastor} · {sermon.campus}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                      {sermon.content.length > 200
-                        ? sermon.content.slice(0, 200) + '...'
-                        : sermon.content}
-                    </p>
+          <div key={sermon.id} className="group relative">
+            <Link href={`/sermons/${sermon.id}`} className="block">
+              <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium truncate">{sermon.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {sermon.pastor} · {sermon.campus}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                        {sermon.content.length > 200
+                          ? sermon.content.slice(0, 200) + '...'
+                          : sermon.content}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <Badge variant="secondary">
+                        {SERVICE_TYPE_LABELS[sermon.service_type]}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {sermon.date ? format(parseISO(sermon.date), 'MMM d, yyyy') : ''}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <Badge variant="secondary">
-                      {SERVICE_TYPE_LABELS[sermon.service_type]}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {sermon.date ? format(parseISO(sermon.date), 'MMM d, yyyy') : ''}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+                </CardContent>
+              </Card>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 z-10"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setDeleteId(sermon.id)
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         ))}
       </div>
 
@@ -274,6 +340,16 @@ export default function SermonsPage() {
           </div>
         </div>
       )}
+
+      <DeleteDialog
+        isOpen={!!deleteId}
+        title="Delete Sermon"
+        description="Are you sure you want to delete this sermon? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        isLoading={deleteMutation.isPending}
+        error={deleteMutation.isError ? 'Failed to delete sermon. Please try again.' : null}
+      />
     </div>
   )
 }
