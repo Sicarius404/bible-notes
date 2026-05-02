@@ -69,7 +69,7 @@ export default function BibleNoteDetail() {
         onPress: async () => {
           try {
             await deleteBibleNote(id as string)
-            router.back()
+            router.replace('/bible-notes')
           } catch (err) {
             console.error(err)
           }
