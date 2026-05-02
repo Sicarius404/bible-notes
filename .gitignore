@@ -68,6 +68,7 @@ nginx/certs/*.pem
 .slim/
 docs/superpowers/
 **/codemap.md
+.worktrees/
 
 # Duplicate hooks directory
 server/pb_hooks/
