@@ -10,20 +10,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getRevelation, updateRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
 import { revelationSchema } from '@bible-notes/shared'
-import VerseContent from '@/components/verse-content'
+import RichTextEditor from '@/components/rich-text-editor'
+import DeleteDialog from '@/components/delete-dialog'
+import HtmlContent from '@/components/html-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -45,6 +38,8 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(revelationSchema),
@@ -184,11 +179,10 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
 
               <div className="space-y-2">
                 <Label htmlFor="content">Content</Label>
-                <Textarea
-                  id="content"
+                <RichTextEditor
+                  value={watch('content') || ''}
+                  onChange={(html) => setValue('content', html, { shouldValidate: true, shouldDirty: true })}
                   placeholder="Write your revelation here..."
-                  rows={12}
-                  {...register('content')}
                 />
                 {errors.content && (
                   <p className="text-sm text-destructive">{errors.content.message}</p>
@@ -214,34 +208,21 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
         <Card>
           <CardContent className="p-6">
             <div className="prose prose-sm max-w-none dark:prose-invert">
-              <VerseContent text={revelation.content} />
+              <HtmlContent html={revelation.content} />
             </div>
           </CardContent>
         </Card>
       )}
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Revelation</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this revelation? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteDialog
+        isOpen={isDeleteDialogOpen}
+        title="Delete Revelation"
+        description="Are you sure you want to delete this revelation? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isLoading={deleteMutation.isPending}
+        error={deleteMutation.isError ? 'Failed to delete revelation. Please try again.' : null}
+      />
     </div>
   )
 }
