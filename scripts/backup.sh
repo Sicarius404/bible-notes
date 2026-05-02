@@ -45,10 +45,18 @@ else
   PB_ADMIN_EMAIL="${POCKETBASE_ADMIN_EMAIL:-admin@example.com}"
   PB_ADMIN_PASSWORD="${POCKETBASE_ADMIN_PASSWORD:-changeme}"
 
-  # Authenticate
+  # Authenticate as admin (PocketBase v0.37.x uses /api/admins/auth-with-password)
+  # Note: The admin endpoint is for the superuser account created via pocketbase superuser upsert
   TOKEN=$(curl -s -X POST "$PB_URL/api/admins/auth-with-password" \
     -H "Content-Type: application/json" \
     -d "{\"identity\":\"$PB_ADMIN_EMAIL\",\"password\":\"$PB_ADMIN_PASSWORD\"}" | jq -r '.token')
+
+  # Fallback: try the old endpoint format if the above fails
+  if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+    TOKEN=$(curl -s -X POST "$PB_URL/api/collections/_superusers/auth-with-password" \
+      -H "Content-Type: application/json" \
+      -d "{\"identity\":\"$PB_ADMIN_EMAIL\",\"password\":\"$PB_ADMIN_PASSWORD\"}" | jq -r '.token')
+  fi
 
   if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
     echo "❌ Failed to authenticate with PocketBase"

@@ -39,8 +39,8 @@ cp .env.example .env
 | Node.js | v24.x LTS (Krypton) | Active LTS |
 | Next.js | v16.2.x | Active LTS |
 | React | v19.2.x | Stable |
-| React Native | v0.83.x | Active (for Phase B) |
-| Expo SDK | v55 | Stable |
+| React Native | v0.81.x | Active (for Phase B) |
+| Expo SDK | v54 | Stable |
 | PocketBase | v0.37.2 | Latest |
 | PocketBase JS SDK | v0.26.8 | Latest |
 | TypeScript | v6.0.3 | Stable |

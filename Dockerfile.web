@@ -10,7 +10,7 @@ ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_POCKETBASE_URL=${NEXT_PUBLIC_POCKETBASE_URL}
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.7.0 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
 
 # Copy workspace config
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./

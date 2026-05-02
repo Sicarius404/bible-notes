@@ -1,4 +1,4 @@
-import { getPocketBase } from './client'
+import { getPocketBase, escapeFilterValue } from './client'
 import type { BibleNote, SmallGroupNote, Sermon, Revelation } from '@bible-notes/shared'
 import { createBibleNote } from './bible-notes'
 import { createSmallGroupNote } from './small-groups'
@@ -27,10 +27,10 @@ export async function exportAllData(): Promise<ExportData> {
   if (!userId) throw new Error('Not authenticated')
 
   const [notes, groups, sermons, revelations] = await Promise.all([
-    pb.collection('bible_notes').getFullList({ filter: `user_id = '${userId}'`, sort: '-date' }),
-    pb.collection('small_group_notes').getFullList({ filter: `user_id = '${userId}'`, sort: '-date' }),
-    pb.collection('sermons').getFullList({ filter: `user_id = '${userId}'`, sort: '-date' }),
-    pb.collection('revelations').getFullList({ filter: `user_id = '${userId}'`, sort: '-date' }),
+    pb.collection('bible_notes').getFullList({ filter: `user_id = '${escapeFilterValue(userId)}'`, sort: '-date' }),
+    pb.collection('small_group_notes').getFullList({ filter: `user_id = '${escapeFilterValue(userId)}'`, sort: '-date' }),
+    pb.collection('sermons').getFullList({ filter: `user_id = '${escapeFilterValue(userId)}'`, sort: '-date' }),
+    pb.collection('revelations').getFullList({ filter: `user_id = '${escapeFilterValue(userId)}'`, sort: '-date' }),
   ])
 
   return {

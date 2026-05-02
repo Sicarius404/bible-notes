@@ -56,3 +56,18 @@ apps/mobile/ios/
 
 AGENTS.md
 .codex
+
+# PWA generated files
+apps/web/public/sw.js
+apps/web/public/workbox-*.js
+
+# SSL certificates
+nginx/certs/*.pem
+
+# Tool artifacts
+.slim/
+docs/superpowers/
+**/codemap.md
+
+# Duplicate hooks directory
+server/pb_hooks/

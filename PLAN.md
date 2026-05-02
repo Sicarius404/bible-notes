@@ -11,8 +11,8 @@ A self-hosted Bible note-taking app with web (Next.js 16) and mobile (Expo SDK 5
 | Node.js | v24.x LTS (Krypton) | Active LTS |
 | Next.js | v16.2.x | Active LTS |
 | React | v19.2.x | Stable |
-| React Native | v0.83.x | Active |
-| Expo SDK | v55 | Stable (Feb 2026) |
+| React Native | v0.81.x | Active |
+| Expo SDK | v54 | Stable |
 | PocketBase | v0.37.2 | Latest |
 | PocketBase JS SDK | v0.26.8 | Latest |
 | TypeScript | v6.0.3 | Stable |
@@ -98,6 +98,7 @@ bible-notes/
 ### BibleNote
 - `id`: string
 - `user_id`: string (relation → users)
+- `title`: text (max 255)
 - `date`: date
 - `verse_refs`: json (array of strings like ["John 3:16", "Psalm 23:1-6"])
 - `content`: text
