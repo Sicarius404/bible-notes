@@ -11,6 +11,9 @@ import { z } from 'zod'
 import { getBibleNote, updateBibleNote, deleteBibleNote } from '@bible-notes/pocketbase-client'
 import { extractVerseRefs, bibleNoteSchema } from '@bible-notes/shared'
 import VerseContent from '@/components/verse-content'
+import RichTextEditor from '@/components/rich-text-editor'
+import DeleteDialog from '@/components/delete-dialog'
+import HtmlContent from '@/components/html-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -50,6 +53,7 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(bibleNoteSchema),
@@ -276,11 +280,10 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
               {/* Content */}
               <div className="space-y-2">
                 <Label htmlFor="content">Content</Label>
-                <Textarea
-                  id="content"
+                <RichTextEditor
+                  value={content || ''}
+                  onChange={(html) => setValue('content', html, { shouldValidate: true, shouldDirty: true })}
                   placeholder="Write your notes here..."
-                  rows={12}
-                  {...register('content')}
                 />
                 {errors.content && (
                   <p className="text-sm text-destructive">{errors.content.message}</p>
@@ -342,36 +345,20 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
             )}
 
             {/* Content */}
-            <div className="prose prose-sm max-w-none dark:prose-invert">
-              <VerseContent text={note.content} />
-            </div>
+            <HtmlContent html={note.content} />
           </CardContent>
         </Card>
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Note</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this Bible note? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteDialog
+        isOpen={isDeleteDialogOpen}
+        title="Delete Bible Note"
+        description={`Are you sure you want to delete "${note.title || 'Untitled Note'}"? This action cannot be undone.`}
+        onConfirm={handleDelete}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        isLoading={deleteMutation.isPending}
+        error={deleteMutation.isError ? 'Failed to delete note. Please try again.' : null}
+      />
     </div>
   )
 }
