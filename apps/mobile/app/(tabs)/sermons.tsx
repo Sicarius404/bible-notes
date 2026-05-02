@@ -1,21 +1,23 @@
-import { useEffect, useState } from 'react'
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
-import { listSermons } from '@bible-notes/pocketbase-client'
+import { useCallback, useState } from 'react'
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Alert, TextInput } from 'react-native'
+import { listSermons, deleteSermon } from '@bible-notes/pocketbase-client'
 import type { Sermon } from '@bible-notes/shared'
 import { SERVICE_TYPE_LABELS } from '@bible-notes/shared'
+import { useFocusEffect } from '@react-navigation/native'
 import { router } from 'expo-router'
 import { Card, CardTitle, CardSubtitle, Screen, EmptyState } from '../../components/ui'
 import { colors, spacing } from '../../theme'
-import { Plus } from 'lucide-react-native'
+import { Plus, Trash2 } from 'lucide-react-native'
 
 export default function SermonsScreen() {
   const [sermons, setSermons] = useState<Sermon[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [search, setSearch] = useState('')
 
   const loadSermons = async () => {
     try {
-      const result = await listSermons({ page: 1, per_page: 50 })
+      const result = await listSermons({ page: 1, per_page: 50, search: search || undefined })
       setSermons(result.items)
     } catch (err) {
       console.error(err)
@@ -25,7 +27,29 @@ export default function SermonsScreen() {
     }
   }
 
-  useEffect(() => { loadSermons() }, [])
+  const handleDelete = (id: string, title: string) => {
+    Alert.alert('Delete Sermon', `Are you sure you want to delete "${title}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteSermon(id)
+            loadSermons()
+          } catch (err) {
+            console.error(err)
+          }
+        },
+      },
+    ])
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      loadSermons()
+    }, [])
+  )
 
   if (loading) {
     return (
@@ -45,6 +69,22 @@ export default function SermonsScreen() {
         <Plus size={24} color={colors.textInverse} />
       </TouchableOpacity>
 
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search sermons..."
+          placeholderTextColor={colors.textMuted}
+          value={search}
+          onChangeText={(text) => {
+            setSearch(text)
+            setTimeout(() => {
+              loadSermons()
+            }, 300)
+          }}
+          clearButtonMode="while-editing"
+        />
+      </View>
+
       <FlatList
         data={sermons}
         keyExtractor={(item) => item.id}
@@ -54,13 +94,21 @@ export default function SermonsScreen() {
         }
         ListEmptyComponent={<EmptyState title="No sermons yet" subtitle="Tap the + button to add your first sermon note" />}
         renderItem={({ item }) => (
-          <Card onPress={() => router.push(`/sermons/${item.id}`)}>
-            <CardTitle>{item.title}</CardTitle>
-            <CardSubtitle>{item.pastor} · {item.campus}</CardSubtitle>
-            <CardSubtitle style={{ marginTop: 4 }}>
-              <Text style={styles.badge}>{SERVICE_TYPE_LABELS[item.service_type]}</Text> · {item.date}
-            </CardSubtitle>
-          </Card>
+          <View key={item.id} style={styles.cardWrapper}>
+            <Card onPress={() => router.push(`/sermons/${item.id}`)}>
+              <CardTitle>{item.title}</CardTitle>
+              <CardSubtitle>{item.pastor} · {item.campus}</CardSubtitle>
+              <CardSubtitle style={{ marginTop: 4 }}>
+                <Text style={styles.badge}>{SERVICE_TYPE_LABELS[item.service_type]}</Text> · {item.date}
+              </CardSubtitle>
+            </Card>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDelete(item.id, item.title)}
+            >
+              <Trash2 size={18} color={colors.error} />
+            </TouchableOpacity>
+          </View>
         )}
       />
     </Screen>
@@ -98,5 +146,27 @@ elevation: 6,
     paddingVertical: 2,
     borderRadius: 6,
     overflow: 'hidden',
+  },
+  searchContainer: {
+    marginBottom: spacing.md,
+  },
+  searchInput: {
+    backgroundColor: colors.surfaceHighlight,
+    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontSize: 16,
+    color: colors.text,
+  },
+  cardWrapper: {
+    marginBottom: spacing.sm,
+    position: 'relative',
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
+    padding: spacing.xs,
+    zIndex: 10,
   },
 })

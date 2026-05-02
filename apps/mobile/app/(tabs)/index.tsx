@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { listBibleNotes, listSermons, listRevelations, listReadingPlans } from '@bible-notes/pocketbase-client'
 import type { BibleNote, Sermon, Revelation, ReadingPlan } from '@bible-notes/shared'
 import { router } from 'expo-router'
@@ -14,9 +15,11 @@ export default function HomeScreen() {
   const [plans, setPlans] = useState<ReadingPlan[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  useFocusEffect(
+    useCallback(() => {
+      loadData()
+    }, [])
+  )
 
   const loadData = async () => {
     try {

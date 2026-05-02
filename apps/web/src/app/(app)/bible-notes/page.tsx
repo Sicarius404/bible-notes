@@ -2,16 +2,25 @@
 
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { listBibleNotes } from '@bible-notes/pocketbase-client'
+import { listBibleNotes, deleteBibleNote } from '@bible-notes/pocketbase-client'
 import type { BibleNote } from '@bible-notes/shared'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
+import MobileSearchBar from '@/components/mobile-search-bar'
+import DeleteDialog from '@/components/delete-dialog'
+import type { FilterConfig } from '@/components/filter-sheet'
+
+const filterConfig: FilterConfig[] = [
+  { key: 'verse_ref', label: 'Verse Reference', type: 'text' },
+  { key: 'date_from', label: 'From Date', type: 'date' },
+  { key: 'date_to', label: 'To Date', type: 'date' },
+]
 
 export default function BibleNotesPage() {
   const [page, setPage] = useState(1)
@@ -19,6 +28,7 @@ export default function BibleNotesPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [search, setSearch] = useState('')
+  const [deleteId, setDeleteId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const debouncedSearch = useDebounce(search, 300)
 
@@ -38,6 +48,34 @@ export default function BibleNotesPage() {
     }),
   })
 
+  const queryClient = useQueryClient()
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteBibleNote(id),
+    onSuccess: () => {
+      setDeleteId(null)
+      queryClient.invalidateQueries({ queryKey: ['bible-notes'] })
+    },
+  })
+
+  const handleSearchChange = (query: string) => {
+    setSearch(query)
+    setPage(1)
+  }
+
+  const handleFilterChange = (filters: Record<string, string>) => {
+    setVerseRef(filters.verse_ref || '')
+    setDateFrom(filters.date_from || '')
+    setDateTo(filters.date_to || '')
+    setPage(1)
+  }
+
+  const handleDelete = () => {
+    if (deleteId) {
+      deleteMutation.mutate(deleteId)
+    }
+  }
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setPage(1)
@@ -50,16 +88,27 @@ export default function BibleNotesPage() {
           <h2 className="text-2xl font-semibold">Bible Notes</h2>
           <p className="text-muted-foreground">Your personal Bible study notes</p>
         </div>
-        <Link href="/bible-notes/new">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            New Note
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <div className="md:hidden">
+            <MobileSearchBar
+              onSearchChange={handleSearchChange}
+              onFilterChange={handleFilterChange}
+              filterConfig={filterConfig}
+              placeholder="Search notes..."
+            />
+          </div>
+          <Link href="/bible-notes/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Note
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}
-      <Card>
+      <div className="hidden md:block">
+        <Card>
         <CardContent className="p-4">
           <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="relative">
@@ -99,6 +148,7 @@ export default function BibleNotesPage() {
           </form>
         </CardContent>
       </Card>
+      </div>
 
       {/* Notes List */}
       {isLoading ? (
@@ -130,11 +180,22 @@ export default function BibleNotesPage() {
           {data?.items.map((note: BibleNote) => {
             const isExpanded = expandedId === note.id
             return (
-              <Card
-                key={note.id}
-                className="hover:border-primary/50 transition-colors cursor-pointer"
-                onClick={() => toggleExpand(note.id)}
-              >
+              <div key={note.id} className="group relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 z-10"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setDeleteId(note.id)
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <Card
+                  className="hover:border-primary/50 transition-colors cursor-pointer"
+                  onClick={() => toggleExpand(note.id)}
+                >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
@@ -172,6 +233,7 @@ export default function BibleNotesPage() {
                   )}
                 </CardContent>
               </Card>
+            </div>
             )
           })}
         </div>
@@ -203,6 +265,17 @@ export default function BibleNotesPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Dialog */}
+      <DeleteDialog
+        isOpen={!!deleteId}
+        title="Delete Bible Note"
+        description="Are you sure you want to delete this note? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        isLoading={deleteMutation.isPending}
+        error={deleteMutation.isError ? 'Failed to delete note. Please try again.' : null}
+      />
     </div>
   )
 }

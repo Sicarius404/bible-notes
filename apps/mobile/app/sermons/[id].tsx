@@ -70,7 +70,7 @@ export default function SermonDetail() {
         onPress: async () => {
           try {
             await deleteSermon(id as string)
-            router.back()
+            router.replace('/sermons')
           } catch (err) {
             console.error(err)
           }

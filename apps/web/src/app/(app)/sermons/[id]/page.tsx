@@ -10,6 +10,9 @@ import { z } from 'zod'
 import { getSermon, updateSermon, deleteSermon } from '@bible-notes/pocketbase-client'
 import { SERVICE_TYPES, SERVICE_TYPE_LABELS, sermonSchema } from '@bible-notes/shared'
 import VerseContent from '@/components/verse-content'
+import RichTextEditor from '@/components/rich-text-editor'
+import DeleteDialog from '@/components/delete-dialog'
+import HtmlContent from '@/components/html-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -17,15 +20,6 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { CampusInput } from '@/components/campus-input'
 import { PastorInput } from '@/components/pastor-input'
 import { ArrowLeft, Pencil, Trash2, Save, X, Church } from 'lucide-react'
@@ -182,34 +176,10 @@ export default function SermonDetailPage() {
                 <Pencil className="h-4 w-4 mr-1" />
                 Edit
               </Button>
-              <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="destructive">
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Delete Sermon</DialogTitle>
-                    <DialogDescription>
-                      Are you sure you want to delete this sermon? This action cannot be undone.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={handleDelete}
-                      disabled={deleteMutation.isPending}
-                    >
-                      {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)}>
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
+              </Button>
             </>
           ) : (
             <Button variant="outline" onClick={handleCancel}>
@@ -296,11 +266,10 @@ export default function SermonDetailPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="content">Content</Label>
-                <Textarea
-                  id="content"
+                <RichTextEditor
+                  value={watch('content') || ''}
+                  onChange={(html) => setValue('content', html, { shouldValidate: true, shouldDirty: true })}
                   placeholder="Sermon notes and content..."
-                  className="min-h-[300px]"
-                  {...register('content')}
                 />
                 {errors.content && (
                   <p className="text-xs text-destructive">{errors.content.message}</p>
@@ -342,12 +311,21 @@ export default function SermonDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
-                <VerseContent text={sermon.content} />
+                <HtmlContent html={sermon.content} />
               </div>
             </CardContent>
           </Card>
         </div>
       )}
+      <DeleteDialog
+        isOpen={deleteDialogOpen}
+        title="Delete Sermon"
+        description={`Are you sure you want to delete "${sermon.title}"? This action cannot be undone.`}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteDialogOpen(false)}
+        isLoading={deleteMutation.isPending}
+        error={deleteMutation.isError ? 'Failed to delete sermon. Please try again.' : null}
+      />
     </div>
   )
 }

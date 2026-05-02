@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
-import { View, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Text } from 'react-native'
-import { listRevelations, createRevelation } from '@bible-notes/pocketbase-client'
+import { useCallback, useState } from 'react'
+import { View, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Text, Alert, TextInput } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
+import { listRevelations, createRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
 import type { Revelation } from '@bible-notes/shared'
 import { router } from 'expo-router'
+import { Trash2 } from 'lucide-react-native'
 import { Card, CardSubtitle, Screen, EmptyState, Input, Button } from '../../components/ui'
 import { colors, spacing } from '../../theme'
 
@@ -12,10 +14,29 @@ export default function RevelationsScreen() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const handleDelete = (id: string) => {
+    Alert.alert('Delete Revelation', 'Are you sure you want to delete this revelation?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteRevelation(id)
+            loadRevelations()
+          } catch (err) {
+            console.error(err)
+          }
+        },
+      },
+    ])
+  }
 
   const loadRevelations = async () => {
     try {
-      const result = await listRevelations({ page: 1, per_page: 50 })
+      const result = await listRevelations({ page: 1, per_page: 50, search: search || undefined })
       setRevelations(result.items)
     } catch (err) {
       console.error(err)
@@ -25,7 +46,11 @@ export default function RevelationsScreen() {
     }
   }
 
-  useEffect(() => { loadRevelations() }, [])
+  useFocusEffect(
+    useCallback(() => {
+      loadRevelations()
+    }, [])
+  )
 
   const handleCreate = async () => {
     if (!content.trim()) return
@@ -77,6 +102,22 @@ export default function RevelationsScreen() {
         </View>
       </View>
 
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search revelations..."
+          placeholderTextColor={colors.textMuted}
+          value={search}
+          onChangeText={(text) => {
+            setSearch(text)
+            setTimeout(() => {
+              loadRevelations()
+            }, 300)
+          }}
+          clearButtonMode="while-editing"
+        />
+      </View>
+
       <FlatList
         data={revelations}
         keyExtractor={(item) => item.id}
@@ -86,10 +127,18 @@ export default function RevelationsScreen() {
         }
         ListEmptyComponent={<EmptyState title="No revelations yet" subtitle="Write down what God reveals to you" />}
         renderItem={({ item }) => (
-          <Card onPress={() => router.push(`/revelations/${item.id}`)}>
-            <CardSubtitle numberOfLines={3}>{item.content}</CardSubtitle>
-            <CardSubtitle style={{ marginTop: 8 }}>{item.date}</CardSubtitle>
-          </Card>
+          <View key={item.id} style={styles.cardWrapper}>
+            <Card onPress={() => router.push(`/revelations/${item.id}`)}>
+              <CardSubtitle numberOfLines={3}>{item.content}</CardSubtitle>
+              <CardSubtitle style={{ marginTop: 8 }}>{item.date}</CardSubtitle>
+            </Card>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDelete(item.id)}
+            >
+              <Trash2 size={18} color={colors.error} />
+            </TouchableOpacity>
+          </View>
         )}
       />
     </Screen>
@@ -116,5 +165,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     justifyContent: 'flex-end',
+  },
+  searchContainer: {
+    marginBottom: spacing.md,
+  },
+  searchInput: {
+    backgroundColor: colors.surfaceHighlight,
+    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontSize: 16,
+    color: colors.text,
+  },
+  cardWrapper: {
+    marginBottom: spacing.sm,
+    position: 'relative',
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
+    padding: spacing.xs,
+    zIndex: 10,
   },
 })

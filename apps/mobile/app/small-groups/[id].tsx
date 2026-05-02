@@ -60,7 +60,7 @@ export default function SmallGroupDetail() {
         onPress: async () => {
           try {
             await deleteSmallGroupNote(id as string)
-            router.back()
+            router.replace('/small-groups')
           } catch (err) {
             console.error(err)
           }

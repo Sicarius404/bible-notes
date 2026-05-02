@@ -14,6 +14,9 @@ import {
 } from '@bible-notes/pocketbase-client'
 import { smallGroupNoteSchema } from '@bible-notes/shared'
 import VerseContent from '@/components/verse-content'
+import RichTextEditor from '@/components/rich-text-editor'
+import DeleteDialog from '@/components/delete-dialog'
+import HtmlContent from '@/components/html-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -50,6 +53,8 @@ export default function SmallGroupDetailPage() {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(smallGroupNoteSchema),
@@ -141,34 +146,10 @@ export default function SmallGroupDetailPage() {
               <Pencil className="h-4 w-4 mr-1" />
               Edit
             </Button>
-            <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <DialogTrigger asChild>
-                <Button variant="destructive">
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Delete
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Delete Note</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to delete this small group note? This action cannot be undone.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button
-                    variant="destructive"
-                    onClick={handleDelete}
-                    disabled={deleteMutation.isPending}
-                  >
-                    {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
           </div>
         )}
       </div>
@@ -203,7 +184,11 @@ export default function SmallGroupDetailPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="content">Content</Label>
-                <Textarea id="content" rows={12} {...register('content')} />
+                <RichTextEditor
+                  value={watch('content') || ''}
+                  onChange={(html) => setValue('content', html, { shouldValidate: true, shouldDirty: true })}
+                  placeholder="Write the note content here..."
+                />
                 {errors.content && (
                   <p className="text-sm text-destructive">{errors.content.message}</p>
                 )}
@@ -236,13 +221,23 @@ export default function SmallGroupDetailPage() {
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Content</h3>
                 <div className="prose prose-sm max-w-none text-sm leading-relaxed">
-                  <VerseContent text={note.content} />
+                  <HtmlContent html={note.content} />
                 </div>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      <DeleteDialog
+        isOpen={deleteOpen}
+        title="Delete Note"
+        description="Are you sure you want to delete this small group note? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteOpen(false)}
+        isLoading={deleteMutation.isPending}
+        error={deleteMutation.isError ? 'Failed to delete note. Please try again.' : null}
+      />
     </div>
   )
 }

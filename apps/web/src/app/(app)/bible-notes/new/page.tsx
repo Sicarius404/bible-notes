@@ -12,6 +12,7 @@ import { extractVerseRefs, bibleNoteSchema } from '@bible-notes/shared'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/rich-text-editor'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -177,11 +178,10 @@ export default function NewBibleNotePage() {
             {/* Content */}
             <div className="space-y-2">
               <Label htmlFor="content">Content</Label>
-              <Textarea
-                id="content"
+              <RichTextEditor
+                value={content || ''}
+                onChange={(html) => setValue('content', html, { shouldValidate: true, shouldDirty: true })}
                 placeholder="Write your notes here..."
-                rows={12}
-                {...register('content')}
               />
               {errors.content && (
                 <p className="text-sm text-destructive">{errors.content.message}</p>

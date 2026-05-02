@@ -11,6 +11,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/rich-text-editor'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
@@ -24,6 +25,8 @@ export default function NewSmallGroupPage() {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(smallGroupNoteSchema),
@@ -88,11 +91,10 @@ export default function NewSmallGroupPage() {
 
             <div className="space-y-2">
               <Label htmlFor="content">Content</Label>
-              <Textarea
-                id="content"
+              <RichTextEditor
+                value={watch('content') || ''}
+                onChange={(html) => setValue('content', html, { shouldValidate: true, shouldDirty: true })}
                 placeholder="Write the note content here..."
-                rows={12}
-                {...register('content')}
               />
               {errors.content && (
                 <p className="text-sm text-destructive">{errors.content.message}</p>
