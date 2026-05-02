@@ -12,6 +12,7 @@ import { SERVICE_TYPES, SERVICE_TYPE_LABELS, sermonSchema } from '@bible-notes/s
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import RichTextEditor from '@/components/rich-text-editor'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -169,11 +170,10 @@ export default function NewSermonPage() {
 
             <div className="space-y-2">
               <Label htmlFor="content">Content</Label>
-              <Textarea
-                id="content"
+              <RichTextEditor
+                value={watch('content') || ''}
+                onChange={(html) => setValue('content', html, { shouldValidate: true, shouldDirty: true })}
                 placeholder="Sermon notes and content..."
-                className="min-h-[300px]"
-                {...register('content')}
               />
               {errors.content && (
                 <p className="text-xs text-destructive">{errors.content.message}</p>
