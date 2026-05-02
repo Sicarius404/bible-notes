@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { format, parseISO } from 'date-fns'
-import { listSmallGroupNotes } from '@bible-notes/pocketbase-client'
+import { listSmallGroupNotes, deleteSmallGroupNote } from '@bible-notes/pocketbase-client'
 import type { SmallGroupNote } from '@bible-notes/shared'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { useDebounce } from '@/hooks/use-debounce'
-import { Plus, Search, ChevronLeft, ChevronRight, Users } from 'lucide-react'
+import { Plus, Search, ChevronLeft, ChevronRight, Users, Trash2 } from 'lucide-react'
+import MobileSearchBar from '@/components/mobile-search-bar'
+import DeleteDialog from '@/components/delete-dialog'
+import type { FilterConfig } from '@/components/filter-sheet'
+
+const filterConfig: FilterConfig[] = [
+  { key: 'topic', label: 'Topic', type: 'text' },
+  { key: 'date_from', label: 'From Date', type: 'date' },
+  { key: 'date_to', label: 'To Date', type: 'date' },
+]
 
 export default function SmallGroupsPage() {
   const [topic, setTopic] = useState('')
@@ -20,9 +29,12 @@ export default function SmallGroupsPage() {
   const [dateTo, setDateTo] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
   const perPage = 10
   const debouncedTopic = useDebounce(topic, 300)
   const debouncedSearch = useDebounce(search, 300)
+
+  const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['small-group-notes', { topic: debouncedTopic, date_from: dateFrom, date_to: dateTo, search: debouncedSearch, page, per_page: perPage }],
@@ -37,8 +49,34 @@ export default function SmallGroupsPage() {
       }),
   })
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteSmallGroupNote(id),
+    onSuccess: () => {
+      setDeleteId(null)
+      queryClient.invalidateQueries({ queryKey: ['small-group-notes'] })
+    },
+  })
+
   const handleSearch = () => {
     setPage(1)
+  }
+
+  const handleMobileSearch = (query: string) => {
+    setSearch(query)
+    setPage(1)
+  }
+
+  const handleMobileFilter = (filters: Record<string, string>) => {
+    setTopic(filters.topic || '')
+    setDateFrom(filters.date_from || '')
+    setDateTo(filters.date_to || '')
+    setPage(1)
+  }
+
+  const handleDelete = () => {
+    if (deleteId) {
+      deleteMutation.mutate(deleteId)
+    }
   }
 
   const truncate = (text: string, maxLength: number) => {
@@ -50,63 +88,75 @@ export default function SmallGroupsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Small Groups</h2>
-        <Button asChild>
-          <Link href="/small-groups/new">
-            <Plus className="h-4 w-4 mr-1" />
-            New Note
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="md:hidden">
+            <MobileSearchBar
+              onSearchChange={handleMobileSearch}
+              onFilterChange={handleMobileFilter}
+              filterConfig={filterConfig}
+              placeholder="Search notes..."
+            />
+          </div>
+          <Button asChild>
+            <Link href="/small-groups/new">
+              <Plus className="h-4 w-4 mr-1" />
+              New Note
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-6 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="topic">Topic</Label>
-              <Input
-                id="topic"
-                placeholder="Search by topic..."
-                value={topic}
-                onChange={(e) => { setTopic(e.target.value); setPage(1) }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="dateFrom">From Date</Label>
-              <Input
-                id="dateFrom"
-                type="date"
-                value={dateFrom}
-                onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="dateTo">To Date</Label>
-              <Input
-                id="dateTo"
-                type="date"
-                value={dateTo}
-                onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="search">Search Content</Label>
-              <div className="flex gap-2">
+      <div className="hidden md:block">
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="topic">Topic</Label>
                 <Input
-                  id="search"
-                  placeholder="Full-text search..."
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleSearch() }}
+                  id="topic"
+                  placeholder="Search by topic..."
+                  value={topic}
+                  onChange={(e) => { setTopic(e.target.value); setPage(1) }}
                 />
-                <Button size="icon" variant="outline" onClick={handleSearch}>
-                  <Search className="h-4 w-4" />
-                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateFrom">From Date</Label>
+                <Input
+                  id="dateFrom"
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateTo">To Date</Label>
+                <Input
+                  id="dateTo"
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="search">Search Content</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="search"
+                    placeholder="Full-text search..."
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSearch() }}
+                  />
+                  <Button size="icon" variant="outline" onClick={handleSearch}>
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* List */}
       <div className="space-y-3">
@@ -138,27 +188,41 @@ export default function SmallGroupsPage() {
           </Card>
         )}
         {data?.items.map((note: SmallGroupNote) => (
-          <Link key={note.id} href={`/small-groups/${note.id}`} className="block">
-            <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-base">{note.topic}</h3>
-                      <Badge variant="secondary">{format(parseISO(note.date), 'MMM d, yyyy')}</Badge>
+          <div key={note.id} className="group relative">
+            <Link href={`/small-groups/${note.id}`} className="block">
+              <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-base">{note.topic}</h3>
+                        <Badge variant="secondary">{format(parseISO(note.date), 'MMM d, yyyy')}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {truncate(note.attendees, 60)}
+                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {truncate(note.content, 120)}
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Users className="h-3 w-3" />
-                      {truncate(note.attendees, 60)}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {truncate(note.content, 120)}
-                    </p>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+                </CardContent>
+              </Card>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 z-10"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setDeleteId(note.id)
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         ))}
       </div>
 
@@ -188,6 +252,15 @@ export default function SmallGroupsPage() {
           </div>
         </div>
       )}
+      <DeleteDialog
+        isOpen={!!deleteId}
+        title="Delete Small Group Note"
+        description="Are you sure you want to delete this small group note? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        isLoading={deleteMutation.isPending}
+        error={deleteMutation.isError ? 'Failed to delete note. Please try again.' : null}
+      />
     </div>
   )
 }
