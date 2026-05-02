@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import {
   View,
   Text,
@@ -10,13 +11,15 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Alert,
+  TextInput,
 } from 'react-native'
-import { listBibleNotes } from '@bible-notes/pocketbase-client'
+import { listBibleNotes, deleteBibleNote } from '@bible-notes/pocketbase-client'
 import type { BibleNote } from '@bible-notes/shared'
 import { router } from 'expo-router'
 import { Card, CardTitle, CardSubtitle, Screen, EmptyState } from '../../components/ui'
 import { colors, spacing, typography } from '../../theme'
-import { Plus, ChevronDown, ChevronUp } from 'lucide-react-native'
+import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react-native'
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -33,10 +36,12 @@ export default function BibleNotesScreen() {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
 
-  const loadNotes = async (nextPage = 1, append = false) => {
+  const loadNotes = async (nextPage = 1, append = false, searchQuery?: string) => {
     try {
-      const result = await listBibleNotes({ page: nextPage, per_page: PAGE_SIZE })
+      const query = searchQuery !== undefined ? searchQuery : search
+      const result = await listBibleNotes({ page: nextPage, per_page: PAGE_SIZE, search: query || undefined })
       if (append) {
         setNotes((prev) => [...prev, ...result.items])
       } else {
@@ -53,12 +58,34 @@ export default function BibleNotesScreen() {
     }
   }
 
-  useEffect(() => { loadNotes() }, [])
+  useFocusEffect(
+    useCallback(() => {
+      loadNotes()
+    }, [])
+  )
+
+  const handleDelete = (id: string, title: string) => {
+    Alert.alert('Delete Note', `Are you sure you want to delete "${title || 'Untitled Note'}"?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteBibleNote(id)
+            loadNotes()
+          } catch (err) {
+            console.error(err)
+          }
+        },
+      },
+    ])
+  }
 
   const handleRefresh = () => {
     setRefreshing(true)
     setExpandedId(null)
-    loadNotes(1)
+    loadNotes(1, false)
   }
 
   const handleLoadMore = () => {
@@ -76,39 +103,46 @@ export default function BibleNotesScreen() {
     const isExpanded = expandedId === item.id
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => toggleExpand(item.id)}
-        style={styles.cardWrapper}
-      >
-        <Card variant={isExpanded ? 'highlight' : 'default'}>
-          <CardTitle style={styles.cardTitle}>{item.title}</CardTitle>
-          <CardSubtitle>{item.verse_refs?.join(', ') || 'No references'}</CardSubtitle>
-          <CardSubtitle style={styles.cardDate}>{item.date}</CardSubtitle>
+      <View style={styles.cardWrapper}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => toggleExpand(item.id)}
+        >
+          <Card variant={isExpanded ? 'highlight' : 'default'}>
+            <CardTitle style={styles.cardTitle}>{item.title}</CardTitle>
+            <CardSubtitle>{item.verse_refs?.join(', ') || 'No references'}</CardSubtitle>
+            <CardSubtitle style={styles.cardDate}>{item.date}</CardSubtitle>
 
-          {isExpanded && (
-            <View style={styles.expandedContent}>
-              <Text style={styles.contentText} numberOfLines={8}>
-                {item.content}
-              </Text>
-              <TouchableOpacity
-                onPress={() => router.push(`/bible-notes/${item.id}`)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.viewFullLink}>View Full Note</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          <View style={styles.expandIcon}>
-            {isExpanded ? (
-              <ChevronUp size={20} color={colors.textMuted} />
-            ) : (
-              <ChevronDown size={20} color={colors.textMuted} />
+            {isExpanded && (
+              <View style={styles.expandedContent}>
+                <Text style={styles.contentText} numberOfLines={8}>
+                  {item.content}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => router.push(`/bible-notes/${item.id}`)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.viewFullLink}>View Full Note</Text>
+                </TouchableOpacity>
+              </View>
             )}
-          </View>
-        </Card>
-      </TouchableOpacity>
+
+            <View style={styles.expandIcon}>
+              {isExpanded ? (
+                <ChevronUp size={20} color={colors.textMuted} />
+              ) : (
+                <ChevronDown size={20} color={colors.textMuted} />
+              )}
+            </View>
+          </Card>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => handleDelete(item.id, item.title)}
+        >
+          <Trash2 size={18} color={colors.error} />
+        </TouchableOpacity>
+      </View>
     )
   }
 
@@ -154,6 +188,22 @@ export default function BibleNotesScreen() {
       >
         <Plus size={24} color={colors.textInverse} />
       </TouchableOpacity>
+
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search notes..."
+          placeholderTextColor={colors.textMuted}
+          value={search}
+          onChangeText={(text) => {
+            setSearch(text)
+            setTimeout(() => {
+              loadNotes(1, false, text)
+            }, 300)
+          }}
+          clearButtonMode="while-editing"
+        />
+      </View>
 
       <FlatList
         data={notes}
@@ -255,5 +305,23 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     paddingVertical: spacing.lg,
+  },
+  searchContainer: {
+    marginBottom: spacing.md,
+  },
+  searchInput: {
+    backgroundColor: colors.surfaceHighlight,
+    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontSize: 16,
+    color: colors.text,
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
+    padding: spacing.xs,
+    zIndex: 10,
   },
 })
