@@ -11,16 +11,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Search, Plus, ChevronLeft, ChevronRight, Pencil, Trash2, X, Check } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
+import MobileSearchBar from '@/components/mobile-search-bar'
+import DeleteDialog from '@/components/delete-dialog'
+import type { FilterConfig } from '@/components/filter-sheet'
+
+const filterConfig: FilterConfig[] = [
+  { key: 'date_from', label: 'From Date', type: 'date' },
+  { key: 'date_to', label: 'To Date', type: 'date' },
+]
 
 export default function RevelationsPage() {
   const queryClient = useQueryClient()
@@ -34,6 +34,17 @@ export default function RevelationsPage() {
   const [editContent, setEditContent] = useState('')
   const [editDate, setEditDate] = useState('')
   const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  const handleMobileSearch = (query: string) => {
+    setSearch(query)
+    setPage(1)
+  }
+
+  const handleMobileFilter = (filters: Record<string, string>) => {
+    setDateFrom(filters.date_from || '')
+    setDateTo(filters.date_to || '')
+    setPage(1)
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ['revelations', { page, date_from: dateFrom || undefined, date_to: dateTo || undefined, search: debouncedSearch || undefined }],
@@ -129,6 +140,14 @@ export default function RevelationsPage() {
           <h2 className="text-2xl font-semibold">Revelations</h2>
           <p className="text-muted-foreground">Quick thoughts and spiritual insights</p>
         </div>
+        <div className="md:hidden">
+          <MobileSearchBar
+            onSearchChange={handleMobileSearch}
+            onFilterChange={handleMobileFilter}
+            filterConfig={filterConfig}
+            placeholder="Search revelations..."
+          />
+        </div>
       </div>
 
       {/* Quick Jot */}
@@ -155,37 +174,39 @@ export default function RevelationsPage() {
       </Card>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <Input
-                type="date"
-                placeholder="From date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-              />
-            </div>
-            <div>
-              <Input
-                type="date"
-                placeholder="To date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search content..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <div className="hidden md:block">
+        <Card>
+          <CardContent className="p-6">
+            <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <Input
+                  type="date"
+                  placeholder="From date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </div>
+              <div>
+                <Input
+                  type="date"
+                  placeholder="To date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search content..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* List */}
       {isLoading ? (
@@ -307,28 +328,15 @@ export default function RevelationsPage() {
       )}
 
       {/* Delete Confirmation */}
-      <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Revelation</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this revelation? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteId(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteDialog
+        isOpen={!!deleteId}
+        title="Delete Revelation"
+        description="Are you sure you want to delete this revelation? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        isLoading={deleteMutation.isPending}
+        error={deleteMutation.isError ? 'Failed to delete revelation. Please try again.' : null}
+      />
     </div>
   )
 }
