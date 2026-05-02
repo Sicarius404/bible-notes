@@ -58,7 +58,7 @@ export default function RevelationDetail() {
         onPress: async () => {
           try {
             await deleteRevelation(id as string)
-            router.back()
+            router.replace('/revelations')
           } catch (err) {
             console.error(err)
           }
