@@ -2,6 +2,10 @@
 
 import { useMemo } from 'react'
 import DOMPurify from 'dompurify'
+import {
+  formatPlainTextAsHtml,
+  removeEmptyParagraphsFromHtml,
+} from './html-content-format'
 
 const ALLOWED_TAGS = [
   'p', 'b', 'i', 'em', 'strong', 'u', 'a', 'ul', 'ol', 'li',
@@ -19,15 +23,14 @@ export default function HtmlContent({ html, className = '' }: HtmlContentProps) 
   const sanitized = useMemo(() => {
     const hasHtmlTags = /<[^>]+>/.test(html)
     if (!hasHtmlTags) {
-      return html
-        .split('\n')
-        .map((line) => `<p>${line}</p>`)
-        .join('')
+      return formatPlainTextAsHtml(html)
     }
-    return DOMPurify.sanitize(html, {
+    const sanitizedHtml = DOMPurify.sanitize(html, {
       ALLOWED_TAGS,
       ALLOWED_ATTR,
     })
+
+    return removeEmptyParagraphsFromHtml(sanitizedHtml)
   }, [html])
 
   return (
