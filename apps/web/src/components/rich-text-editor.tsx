@@ -1,6 +1,6 @@
 'use client'
 
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
 import Underline from '@tiptap/extension-underline'
@@ -75,7 +75,7 @@ export default function RichTextEditor({
   }
 
   return (
-    <div className={`border rounded-md ${className}`}>
+    <div className={`border rounded-md focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all duration-200 bg-card/40 ${className}`}>
       <div className="flex flex-wrap items-center gap-1 p-2 border-b bg-muted/50">
         <Toggle
           size="sm"
@@ -185,6 +185,34 @@ export default function RichTextEditor({
         </Popover>
       </div>
       <EditorContent editor={editor} />
+      {editor && (
+        <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="flex items-center gap-1 bg-background border border-border shadow-md rounded-md p-1 z-50">
+          <Toggle
+            size="sm"
+            className="h-7 px-2"
+            pressed={editor.isActive('bold')}
+            onPressedChange={() => editor.chain().focus().toggleBold().run()}
+          >
+            <Bold className="h-3.5 w-3.5" />
+          </Toggle>
+          <Toggle
+            size="sm"
+            className="h-7 px-2"
+            pressed={editor.isActive('italic')}
+            onPressedChange={() => editor.chain().focus().toggleItalic().run()}
+          >
+            <Italic className="h-3.5 w-3.5" />
+          </Toggle>
+          <Toggle
+            size="sm"
+            className="h-7 px-2"
+            pressed={editor.isActive('underline')}
+            onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
+          >
+            <UnderlineIcon className="h-3.5 w-3.5" />
+          </Toggle>
+        </BubbleMenu>
+      )}
     </div>
   )
 }

@@ -204,11 +204,11 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
         </div>
         {!isEditing && (
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setIsEditing(true)}>
+            <Button variant="outline" className="hover:scale-[1.02] active:scale-95 transition-all duration-200" onClick={() => setIsEditing(true)}>
               <Pencil className="h-4 w-4 mr-2" />
               Edit
             </Button>
-            <Button variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+            <Button variant="destructive" className="hover:scale-[1.02] active:scale-95 transition-all duration-200" onClick={() => setIsDeleteDialogOpen(true)}>
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
             </Button>
@@ -218,7 +218,7 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
 
       {isEditing ? (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <Card>
+          <Card className="border-primary/20 shadow-md bg-card/60 backdrop-blur-sm">
             <CardHeader>
               <CardTitle>Edit Note</CardTitle>
             </CardHeader>
@@ -310,10 +310,10 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
           </Card>
 
           <div className="flex items-center justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+            <Button type="button" variant="outline" className="hover:scale-[1.02] active:scale-95 transition-all duration-200" onClick={() => setIsEditing(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={updateMutation.isPending}>
+            <Button type="submit" className="hover:scale-[1.02] active:scale-95 transition-all duration-200 shadow-md shadow-primary/20" disabled={updateMutation.isPending}>
               {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
@@ -323,8 +323,8 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
           )}
         </form>
       ) : (
-        <Card>
-          <CardContent className="p-6 space-y-4">
+        <Card className="shadow-sm border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardContent className="p-6 md:p-8 space-y-6">
             {/* Verse Badges */}
             {note.verse_refs.length > 0 && (
               <div className="flex flex-wrap gap-2">

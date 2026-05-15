@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
+import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Trash2, BookOpen } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
 import MobileSearchBar from '@/components/mobile-search-bar'
 import DeleteDialog from '@/components/delete-dialog'
+import HtmlContent from '@/components/html-content'
 import type { FilterConfig } from '@/components/filter-sheet'
 
 const filterConfig: FilterConfig[] = [
@@ -98,7 +99,7 @@ export default function BibleNotesPage() {
             />
           </div>
           <Link href="/bible-notes/new">
-            <Button>
+            <Button className="hover:scale-[1.02] active:scale-95 transition-all duration-200 shadow-sm shadow-primary/20">
               <Plus className="h-4 w-4 mr-2" />
               New Note
             </Button>
@@ -164,11 +165,17 @@ export default function BibleNotesPage() {
           ))}
         </div>
       ) : data?.items.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">No Bible notes found.</p>
+        <Card className="border-dashed border-2 border-border/80 bg-gradient-to-b from-card/40 to-transparent shadow-sm backdrop-blur-sm">
+          <CardContent className="p-12 text-center flex flex-col items-center justify-center">
+            <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4 ring-8 ring-primary/5 animate-in zoom-in-75 duration-500">
+              <BookOpen className="h-6 w-6" />
+            </div>
+            <h3 className="font-semibold text-lg mb-1">No notes recorded yet</h3>
+            <p className="text-muted-foreground text-sm max-w-sm mb-6">
+              Start documenting your spiritual journey, study insights, and personal revelations.
+            </p>
             <Link href="/bible-notes/new">
-              <Button variant="outline" className="mt-4">
+              <Button className="hover:scale-[1.02] active:scale-95 transition-all duration-200 shadow-md shadow-primary/20">
                 <Plus className="h-4 w-4 mr-2" />
                 Create your first note
               </Button>
@@ -177,10 +184,14 @@ export default function BibleNotesPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {data?.items.map((note: BibleNote) => {
+          {data?.items.map((note: BibleNote, index: number) => {
             const isExpanded = expandedId === note.id
             return (
-              <div key={note.id} className="group relative">
+              <div
+                key={note.id}
+                className="group relative animate-in fade-in slide-in-from-bottom-3 duration-500"
+                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}
+              >
                 <Button
                   variant="ghost"
                   size="icon"
@@ -193,7 +204,7 @@ export default function BibleNotesPage() {
                   <Trash2 className="h-4 w-4" />
                 </Button>
                 <Card
-                  className="hover:border-primary/50 transition-colors cursor-pointer"
+                  className="hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer bg-card/60 backdrop-blur-sm"
                   onClick={() => toggleExpand(note.id)}
                 >
                 <CardContent className="p-4">
@@ -220,12 +231,12 @@ export default function BibleNotesPage() {
                     )}
                   </div>
                   {isExpanded && (
-                    <div className="mt-4 space-y-3">
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {note.content}
-                      </p>
+                    <div className="mt-4 space-y-3 pt-4 border-t border-border/50">
+                      <div className="text-sm text-muted-foreground line-clamp-4">
+                        <HtmlContent html={note.content} />
+                      </div>
                       <Link href={`/bible-notes/${note.id}`} onClick={(e) => e.stopPropagation()}>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
                           View Full Note
                         </Button>
                       </Link>

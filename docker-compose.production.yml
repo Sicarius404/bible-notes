@@ -15,6 +15,12 @@ services:
       - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:-admin@bible.zonit.co.za}
       - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:-changeme123}
     # NO command override — let the entrypoint set --dir, --publicDir, --hooksDir, and auto-create superuser
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.bible-pb.rule=Host(`bible.zonit.co.za`) && (PathPrefix(`/api/`) || PathPrefix(`/_/`))"
@@ -38,7 +44,14 @@ services:
       - NEXT_PUBLIC_BIBLE_GATEWAY_URL=https://www.biblegateway.com/passage/
       - NEXT_PUBLIC_DEFAULT_BIBLE_VERSION=NIV
     depends_on:
-      - pocketbase
+      pocketbase:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.bible-web.rule=Host(`bible.zonit.co.za`)"

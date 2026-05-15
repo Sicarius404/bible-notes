@@ -36,10 +36,10 @@ function NavLink({ href, label, icon: Icon }: { href: string; label: string; ico
     <Link
       href={href}
       className={cn(
-        'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+        'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200',
         pathname === href
-          ? 'bg-primary text-primary-foreground'
-          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+          ? 'bg-primary/10 text-primary shadow-sm border border-primary/20'
+          : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
       )}
     >
       <Icon className="h-4 w-4" />
@@ -92,12 +92,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex">
       {/* Desktop Sidebar - hidden on mobile, shown on md+ */}
-      <aside className="hidden md:flex w-64 border-r border-border bg-card p-4 flex-col">
+      <aside className="hidden md:flex w-64 border-r border-border/50 bg-card/80 backdrop-blur-md p-4 flex-col fixed inset-y-0 z-10">
         <NavContent />
       </aside>
 
       {/* Mobile Header - shown on mobile, hidden on md+ */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-card border-b border-border px-4 py-3 flex items-center gap-4">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-3 flex items-center gap-4 shadow-sm">
         <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -116,8 +116,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto pt-16 md:pt-0">
-        <div className="max-w-4xl mx-auto p-6">
+      <main className="flex-1 overflow-auto md:pl-64 pt-16 md:pt-0 min-h-screen">
+        <div className="max-w-4xl mx-auto p-6 animate-in fade-in duration-500">
           {children}
         </div>
       </main>

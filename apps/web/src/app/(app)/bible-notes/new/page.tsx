@@ -112,7 +112,7 @@ export default function NewBibleNotePage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
+        <Card className="border-primary/20 shadow-md bg-card/60 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>Note Details</CardTitle>
           </CardHeader>
@@ -211,11 +211,11 @@ export default function NewBibleNotePage() {
         {/* Actions */}
         <div className="flex items-center justify-end gap-3">
           <Link href="/bible-notes">
-            <Button type="button" variant="outline">
+            <Button type="button" variant="outline" className="hover:scale-[1.02] active:scale-95 transition-all duration-200">
               Cancel
             </Button>
           </Link>
-          <Button type="submit" disabled={mutation.isPending}>
+          <Button type="submit" className="hover:scale-[1.02] active:scale-95 transition-all duration-200 shadow-md shadow-primary/20" disabled={mutation.isPending}>
             {mutation.isPending ? 'Saving...' : 'Save Note'}
           </Button>
         </div>
