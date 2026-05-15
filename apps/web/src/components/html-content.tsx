@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import DOMPurify from 'isomorphic-dompurify'
+import DOMPurify from 'dompurify'
 
 const ALLOWED_TAGS = [
   'p', 'b', 'i', 'em', 'strong', 'u', 'a', 'ul', 'ol', 'li',
