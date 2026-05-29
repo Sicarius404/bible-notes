@@ -127,9 +127,9 @@ export default function SmallGroupDetail() {
 const styles = StyleSheet.create({
   center: { justifyContent: 'center', alignItems: 'center' },
   notFound: { ...typography.body, color: colors.textMuted },
-  form: { paddingTop: spacing.lg },
+  form: { paddingTop: spacing.lg, paddingHorizontal: spacing.md },
   formTitle: { ...typography.heading2, marginBottom: spacing.lg },
-  view: { paddingTop: spacing.lg },
+  view: { paddingTop: spacing.lg, paddingHorizontal: spacing.md },
   topic: { ...typography.heading2, marginBottom: spacing.sm },
   date: { ...typography.bodySmall, color: colors.textMuted, marginBottom: spacing.md },
   divider: { height: 1, backgroundColor: colors.borderLight, marginBottom: spacing.md },

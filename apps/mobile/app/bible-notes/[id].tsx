@@ -157,6 +157,7 @@ const styles = StyleSheet.create({
   },
   form: {
     paddingTop: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
   formTitle: {
     ...typography.heading2,
@@ -164,6 +165,7 @@ const styles = StyleSheet.create({
   },
   view: {
     paddingTop: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
   titleHeading: {
     ...typography.heading1,
