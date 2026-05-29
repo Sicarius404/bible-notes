@@ -223,6 +223,29 @@ export function linkifyVerses(text: string, version?: string): string {
 }
 
 /**
+ * Linkify verse references inside HTML content without escaping HTML.
+ * Preserves existing <a> tags to avoid nested anchors.
+ */
+export function linkifyVersesInHtml(html: string, version?: string): string {
+  // Split by existing anchor tags to avoid nesting <a> inside <a>
+  const aTagRegex = /(<a\b[^>]*>[\s\S]*?<\/a>)/gi
+  const parts = html.split(aTagRegex)
+
+  return parts
+    .map((part, index) => {
+      // Even indices = non-anchor text; odd indices = existing anchor tags
+      if (index % 2 === 1) return part
+
+      VERSE_REGEX.lastIndex = 0
+      return part.replace(VERSE_REGEX, (match) => {
+        const url = verseToUrl(match, version)
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="verse-link">${match}</a>`
+      })
+    })
+    .join('')
+}
+
+/**
  * Extract just the reference strings from text (for storing in verse_refs array).
  */
 export function extractVerseRefs(text: string): string[] {
