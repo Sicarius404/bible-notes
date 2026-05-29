@@ -157,10 +157,10 @@ export default function SermonDetail() {
 const styles = StyleSheet.create({
   center: { justifyContent: 'center', alignItems: 'center' },
   notFound: { ...typography.body, color: colors.textMuted },
-  form: { paddingTop: spacing.lg },
+  form: { paddingTop: spacing.lg, paddingHorizontal: spacing.md },
   formTitle: { ...typography.heading2, marginBottom: spacing.lg },
   label: { ...typography.bodySmall, fontWeight: '600', color: colors.textSecondary, marginBottom: spacing.xs },
-  serviceTypeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
+  serviceTypeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   serviceTypeButton: {
     flex: 1,
     paddingVertical: 12,
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   serviceTypeButtonActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   serviceTypeText: { fontSize: 14, fontWeight: '500', color: colors.textSecondary },
   serviceTypeTextActive: { color: colors.textInverse, fontWeight: '600' },
-  view: { paddingTop: spacing.lg },
+  view: { paddingTop: spacing.lg, paddingHorizontal: spacing.md },
   badge: {
     alignSelf: 'flex-start',
     backgroundColor: colors.accent + '20',
