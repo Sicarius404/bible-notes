@@ -33,6 +33,10 @@ const filterConfig: FilterConfig[] = [
   { key: 'date_to', label: 'To Date', type: 'date' },
 ]
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+}
+
 export default function SermonsPage() {
   const [search, setSearch] = useState('')
   const [pastor, setPastor] = useState('')
@@ -281,9 +285,10 @@ export default function SermonsPage() {
                         {sermon.pastor} · {sermon.campus}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {sermon.content.length > 200
-                          ? sermon.content.slice(0, 200) + '...'
-                          : sermon.content}
+                        {(() => {
+                          const text = stripHtml(sermon.content)
+                          return text.length > 200 ? text.slice(0, 200) + '...' : text
+                        })()}
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2 shrink-0">
