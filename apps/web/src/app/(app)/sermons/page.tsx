@@ -34,7 +34,12 @@ const filterConfig: FilterConfig[] = [
 ]
 
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+  // Replace block-level tags and <br> with a space so adjacent text doesn't run together
+  const withSpaces = html
+    .replace(/<\/(p|div|h[1-6]|li|blockquote)>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, ' ')
+  // Strip remaining tags
+  return withSpaces.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
 }
 
 export default function SermonsPage() {
