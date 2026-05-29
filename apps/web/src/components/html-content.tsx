@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import DOMPurify from 'dompurify'
+import { linkifyVersesInHtml } from '@bible-notes/shared'
 import {
   formatPlainTextAsHtml,
   removeEmptyParagraphsFromHtml,
@@ -17,21 +18,23 @@ const ALLOWED_ATTR = ['href', 'target', 'rel', 'class']
 interface HtmlContentProps {
   html: string
   className?: string
+  linkifyVerses?: boolean
 }
 
-export default function HtmlContent({ html, className = '' }: HtmlContentProps) {
+export default function HtmlContent({ html, className = '', linkifyVerses = false }: HtmlContentProps) {
   const sanitized = useMemo(() => {
-    const hasHtmlTags = /<[^>]+>/.test(html)
+    const htmlToProcess = linkifyVerses ? linkifyVersesInHtml(html) : html
+    const hasHtmlTags = /<[^>]+>/.test(htmlToProcess)
     if (!hasHtmlTags) {
-      return formatPlainTextAsHtml(html)
+      return formatPlainTextAsHtml(htmlToProcess)
     }
-    const sanitizedHtml = DOMPurify.sanitize(html, {
+    const sanitizedHtml = DOMPurify.sanitize(htmlToProcess, {
       ALLOWED_TAGS,
       ALLOWED_ATTR,
     })
 
     return removeEmptyParagraphsFromHtml(sanitizedHtml)
-  }, [html])
+  }, [html, linkifyVerses])
 
   return (
     <div

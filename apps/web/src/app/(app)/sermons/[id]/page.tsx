@@ -9,7 +9,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getSermon, updateSermon, deleteSermon } from '@bible-notes/pocketbase-client'
 import { SERVICE_TYPES, SERVICE_TYPE_LABELS, sermonSchema } from '@bible-notes/shared'
-import VerseContent from '@/components/verse-content'
 import RichTextEditor from '@/components/rich-text-editor'
 import DeleteDialog from '@/components/delete-dialog'
 import HtmlContent from '@/components/html-content'
@@ -311,7 +310,7 @@ export default function SermonDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
-                <HtmlContent html={sermon.content} />
+                <HtmlContent html={sermon.content} linkifyVerses />
               </div>
             </CardContent>
           </Card>
