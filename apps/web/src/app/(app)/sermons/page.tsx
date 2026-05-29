@@ -285,10 +285,7 @@ export default function SermonsPage() {
                         {sermon.pastor} · {sermon.campus}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {(() => {
-                          const text = stripHtml(sermon.content)
-                          return text.length > 200 ? text.slice(0, 200) + '...' : text
-                        })()}
+                        {stripHtml(sermon.content)}
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2 shrink-0">
