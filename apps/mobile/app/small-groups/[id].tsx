@@ -3,9 +3,8 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert } from 're
 import { getSmallGroupNote, updateSmallGroupNote, deleteSmallGroupNote } from '@bible-notes/pocketbase-client'
 import type { SmallGroupNote } from '@bible-notes/shared'
 import { useLocalSearchParams, router } from 'expo-router'
-import { Input, Button, Screen } from '../../components/ui'
+import { Input, Button, Screen, SmartContent } from '../../components/ui'
 import { RichTextInput } from '../../components/ui/RichTextInput'
-import { MarkdownContent } from '../../components/ui/MarkdownContent'
 import { colors, spacing, typography } from '../../theme'
 
 export default function SmallGroupDetail() {
@@ -113,7 +112,7 @@ export default function SmallGroupDetail() {
             <Text style={styles.sectionLabel}>Attendees</Text>
             <Text style={styles.content}>{note.attendees}</Text>
             <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>Content</Text>
-            <MarkdownContent content={note.content} />
+            <SmartContent content={note.content} />
             <View style={styles.buttonRow}>
               <Button title="Edit" onPress={() => setIsEditing(true)} variant="outline" style={{ flex: 1 }} />
               <Button title="Delete" onPress={handleDelete} variant="ghost" style={{ flex: 1 }} />

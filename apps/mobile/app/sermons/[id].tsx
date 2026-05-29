@@ -4,9 +4,8 @@ import { getSermon, updateSermon, deleteSermon } from '@bible-notes/pocketbase-c
 import type { Sermon, ServiceType } from '@bible-notes/shared'
 import { SERVICE_TYPE_LABELS, SERVICE_TYPES } from '@bible-notes/shared'
 import { useLocalSearchParams, router } from 'expo-router'
-import { Input, Button, Screen } from '../../components/ui'
+import { Input, Button, Screen, SmartContent } from '../../components/ui'
 import { RichTextInput } from '../../components/ui/RichTextInput'
-import { MarkdownContent } from '../../components/ui/MarkdownContent'
 import { colors, spacing, typography } from '../../theme'
 
 export default function SermonDetail() {
@@ -143,7 +142,7 @@ export default function SermonDetail() {
             <Text style={styles.meta}>{sermon.pastor} · {sermon.campus}</Text>
             <Text style={styles.date}>{sermon.date}</Text>
             <View style={styles.divider} />
-            <MarkdownContent content={sermon.content} />
+            <SmartContent content={sermon.content} />
             <View style={styles.buttonRow}>
               <Button title="Edit" onPress={() => setIsEditing(true)} variant="outline" style={{ flex: 1 }} />
               <Button title="Delete" onPress={handleDelete} variant="ghost" style={{ flex: 1 }} />

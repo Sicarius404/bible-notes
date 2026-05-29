@@ -3,9 +3,8 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert } from 're
 import { getRevelation, updateRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
 import type { Revelation } from '@bible-notes/shared'
 import { useLocalSearchParams, router } from 'expo-router'
-import { Input, Button, Screen } from '../../components/ui'
+import { Input, Button, Screen, SmartContent } from '../../components/ui'
 import { RichTextInput } from '../../components/ui/RichTextInput'
-import { MarkdownContent } from '../../components/ui/MarkdownContent'
 import { colors, spacing, typography } from '../../theme'
 
 export default function RevelationDetail() {
@@ -105,7 +104,7 @@ export default function RevelationDetail() {
           <View style={styles.view}>
             <Text style={styles.date}>{revelation.date}</Text>
             <View style={styles.divider} />
-            <MarkdownContent content={revelation.content} />
+            <SmartContent content={revelation.content} />
             <View style={styles.buttonRow}>
               <Button title="Edit" onPress={() => setIsEditing(true)} variant="outline" style={{ flex: 1 }} />
               <Button title="Delete" onPress={handleDelete} variant="ghost" style={{ flex: 1 }} />
