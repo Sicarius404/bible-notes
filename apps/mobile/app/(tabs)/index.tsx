@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import { useFocusEffect } from '@react-navigation/native'
 import { listBibleNotes, listSermons, listRevelations, listReadingPlans } from '@bible-notes/pocketbase-client'
 import type { BibleNote, Sermon, Revelation, ReadingPlan } from '@bible-notes/shared'
+import { stripHtml } from '@bible-notes/shared'
 import { router } from 'expo-router'
 import { Card, CardTitle, CardSubtitle, Screen, SectionHeader, EmptyState } from '../../components/ui'
 import { colors, spacing, typography, shadows, radius } from '../../theme'
@@ -107,7 +108,7 @@ export default function HomeScreen() {
               <CardTitle>{note.verse_refs?.[0] || 'Bible Note'}</CardTitle>
               <CardSubtitle>{note.date}</CardSubtitle>
               <CardSubtitle style={{ marginTop: 4 }} numberOfLines={2}>
-                {note.content}
+                {stripHtml(note.content)}
               </CardSubtitle>
             </Card>
           ))

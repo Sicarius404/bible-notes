@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getRevelation, updateRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
-import { revelationSchema } from '@bible-notes/shared'
+import { revelationSchema, stripHtml } from '@bible-notes/shared'
 import RichTextEditor from '@/components/rich-text-editor'
 import DeleteDialog from '@/components/delete-dialog'
 import HtmlContent from '@/components/html-content'
@@ -141,9 +141,8 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
             </h2>
             {!isEditing && (
               <p className="text-muted-foreground text-sm">
-                {revelation.content.length > 100
-                  ? revelation.content.slice(0, 100) + '...'
-                  : revelation.content}
+                {stripHtml(revelation.content).slice(0, 100)}
+                {stripHtml(revelation.content).length > 100 ? '...' : ''}
               </p>
             )}
           </div>

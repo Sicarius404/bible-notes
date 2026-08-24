@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Alert, TextInput } from 'react-native'
 import { listSmallGroupNotes, deleteSmallGroupNote } from '@bible-notes/pocketbase-client'
 import type { SmallGroupNote } from '@bible-notes/shared'
+import { stripHtml } from '@bible-notes/shared'
 import { router } from 'expo-router'
 import { Card, CardTitle, CardSubtitle, Screen, EmptyState } from '../../components/ui'
 import { colors, spacing } from '../../theme'
@@ -99,7 +100,7 @@ export default function SmallGroupsScreen() {
               <CardTitle>{item.topic}</CardTitle>
               <CardSubtitle>{item.date}</CardSubtitle>
               <CardSubtitle numberOfLines={2} style={{ marginTop: 4 }}>
-                {item.content}
+                {stripHtml(item.content)}
               </CardSubtitle>
             </Card>
             <TouchableOpacity

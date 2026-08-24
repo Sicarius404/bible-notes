@@ -16,6 +16,7 @@ import {
 } from 'react-native'
 import { listBibleNotes, deleteBibleNote } from '@bible-notes/pocketbase-client'
 import type { BibleNote } from '@bible-notes/shared'
+import { stripHtml } from '@bible-notes/shared'
 import { router } from 'expo-router'
 import { Card, CardTitle, CardSubtitle, Screen, EmptyState } from '../../components/ui'
 import { colors, spacing, typography } from '../../theme'
@@ -116,7 +117,7 @@ export default function BibleNotesScreen() {
             {isExpanded && (
               <View style={styles.expandedContent}>
                 <Text style={styles.contentText} numberOfLines={8}>
-                  {item.content}
+                  {stripHtml(item.content)}
                 </Text>
                 <TouchableOpacity
                   onPress={() => router.push(`/bible-notes/${item.id}`)}

@@ -3,6 +3,7 @@ import { View, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Refres
 import { useFocusEffect } from '@react-navigation/native'
 import { listRevelations, createRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
 import type { Revelation } from '@bible-notes/shared'
+import { stripHtml } from '@bible-notes/shared'
 import { router } from 'expo-router'
 import { Trash2 } from 'lucide-react-native'
 import { Card, CardSubtitle, Screen, EmptyState, Input, Button } from '../../components/ui'
@@ -129,7 +130,7 @@ export default function RevelationsScreen() {
         renderItem={({ item }) => (
           <View key={item.id} style={styles.cardWrapper}>
             <Card onPress={() => router.push(`/revelations/${item.id}`)}>
-              <CardSubtitle numberOfLines={3}>{item.content}</CardSubtitle>
+              <CardSubtitle numberOfLines={3}>{stripHtml(item.content)}</CardSubtitle>
               <CardSubtitle style={{ marginTop: 8 }}>{item.date}</CardSubtitle>
             </Card>
             <TouchableOpacity

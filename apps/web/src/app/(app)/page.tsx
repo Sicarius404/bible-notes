@@ -7,7 +7,7 @@ import { listBibleNotes } from '@bible-notes/pocketbase-client'
 import { listSermons } from '@bible-notes/pocketbase-client'
 import { listRevelations } from '@bible-notes/pocketbase-client'
 import { listReadingPlans } from '@bible-notes/pocketbase-client'
-import { SERVICE_TYPE_LABELS } from '@bible-notes/shared'
+import { SERVICE_TYPE_LABELS, stripHtml } from '@bible-notes/shared'
 import { BookOpen, Church, Lightbulb, CalendarCheck, Users, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -235,7 +235,7 @@ export default function HomePage() {
             {recentRevelations.items.slice(0, 3).map((rev) => (
               <Link key={rev.id} href={`/revelations/${rev.id}`} className="block">
                 <div className="p-2 rounded-md hover:bg-muted/50 transition-colors">
-                  <p className="text-sm">{rev.content.length > 100 ? rev.content.slice(0, 100) + '...' : rev.content}</p>
+                  <p className="text-sm">{stripHtml(rev.content).slice(0, 100) || 'No content'}{stripHtml(rev.content).length > 100 ? '...' : ''}</p>
                   <p className="text-xs text-muted-foreground">{format(new Date(rev.date), 'MMM d, yyyy')}</p>
                 </div>
               </Link>

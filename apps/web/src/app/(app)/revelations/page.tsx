@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { listRevelations, createRevelation, updateRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
 import type { Revelation } from '@bible-notes/shared'
-import VerseContent from '@/components/verse-content'
+import HtmlContent from '@/components/html-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -267,7 +267,7 @@ export default function RevelationsPage() {
                     <div className="flex items-start justify-between gap-4">
                       <Link href={`/revelations/${revelation.id}`} className="flex-1 min-w-0">
                         <div className="text-sm prose prose-sm max-w-none dark:prose-invert line-clamp-3">
-                          <VerseContent text={revelation.content} />
+                          <HtmlContent html={revelation.content} />
                         </div>
                       </Link>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
