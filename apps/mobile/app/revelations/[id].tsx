@@ -15,10 +15,6 @@ export default function RevelationDetail() {
   const [saving, setSaving] = useState(false)
   const [editForm, setEditForm] = useState({ date: '', content: '' })
 
-  useEffect(() => {
-    loadRevelation()
-  }, [id])
-
   const loadRevelation = async () => {
     try {
       const result = await getRevelation(id as string)
@@ -33,6 +29,12 @@ export default function RevelationDetail() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    void (async () => {
+      await loadRevelation()
+    })()
+  }, [id])
 
   const handleUpdate = async () => {
     setSaving(true)

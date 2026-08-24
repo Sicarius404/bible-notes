@@ -15,10 +15,6 @@ export default function BibleNoteDetail() {
   const [saving, setSaving] = useState(false)
   const [editForm, setEditForm] = useState({ title: '', date: '', verse_refs: '', content: '' })
 
-  useEffect(() => {
-    loadNote()
-  }, [id])
-
   const loadNote = async () => {
     try {
       const result = await getBibleNote(id as string)
@@ -35,6 +31,12 @@ export default function BibleNoteDetail() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    void (async () => {
+      await loadNote()
+    })()
+  }, [id])
 
   const handleUpdate = async () => {
     if (!editForm.title.trim()) {

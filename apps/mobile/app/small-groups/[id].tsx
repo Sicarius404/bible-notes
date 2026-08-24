@@ -15,10 +15,6 @@ export default function SmallGroupDetail() {
   const [saving, setSaving] = useState(false)
   const [editForm, setEditForm] = useState({ date: '', topic: '', attendees: '', content: '' })
 
-  useEffect(() => {
-    loadNote()
-  }, [id])
-
   const loadNote = async () => {
     try {
       const result = await getSmallGroupNote(id as string)
@@ -35,6 +31,12 @@ export default function SmallGroupDetail() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    void (async () => {
+      await loadNote()
+    })()
+  }, [id])
 
   const handleUpdate = async () => {
     setSaving(true)

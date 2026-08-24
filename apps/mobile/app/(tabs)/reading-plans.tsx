@@ -32,7 +32,11 @@ export default function ReadingPlansScreen() {
     }
   }
 
-  useEffect(() => { loadPlans() }, [])
+  useEffect(() => {
+    void (async () => {
+      await loadPlans()
+    })()
+  }, [])
 
   if (loading) {
     return (

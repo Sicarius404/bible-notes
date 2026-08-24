@@ -23,10 +23,6 @@ export default function SermonDetail() {
     content: '',
   })
 
-  useEffect(() => {
-    loadSermon()
-  }, [id])
-
   const loadSermon = async () => {
     try {
       const result = await getSermon(id as string)
@@ -45,6 +41,12 @@ export default function SermonDetail() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    void (async () => {
+      await loadSermon()
+    })()
+  }, [id])
 
   const handleUpdate = async () => {
     setSaving(true)

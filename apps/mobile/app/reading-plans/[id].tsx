@@ -12,10 +12,6 @@ export default function ReadingPlanDetail() {
   const [completedDays, setCompletedDays] = useState<Set<number>>(new Set())
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadPlan()
-  }, [id])
-
   const loadPlan = async () => {
     try {
       const [planResult, progress] = await Promise.all([
@@ -30,6 +26,12 @@ export default function ReadingPlanDetail() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    void (async () => {
+      await loadPlan()
+    })()
+  }, [id])
 
   const handleDelete = () => {
     Alert.alert('Delete Plan', 'Are you sure you want to delete this reading plan?', [

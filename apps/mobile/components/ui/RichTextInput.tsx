@@ -105,6 +105,7 @@ export function RichTextInput({
           scrollEnabled={false}
         />
         <View style={styles.toolbar}>
+          {/* eslint-disable-next-line react-hooks/refs -- false positive (react-hooks v7): item.action() touches inputRef only inside event handlers, never during render */}
           {toolbarItems.map((item, index) => (
             <TouchableOpacity
               key={index}

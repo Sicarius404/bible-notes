@@ -15,12 +15,6 @@ export default function HomeScreen() {
   const [plans, setPlans] = useState<ReadingPlan[]>([])
   const [loading, setLoading] = useState(true)
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData()
-    }, [])
-  )
-
   const loadData = async () => {
     try {
       const [n, s, r, p] = await Promise.all([
@@ -39,6 +33,12 @@ export default function HomeScreen() {
       setLoading(false)
     }
   }
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData()
+    }, [])
+  )
 
   if (loading) {
     return (
