@@ -2,7 +2,7 @@
 
 ## Overview
 
-A self-hosted Bible note-taking app with web (Next.js 16) and mobile (Expo SDK 55) frontends, backed by PocketBase. Features include daily Bible reading notes with verse auto-linking, small group notes, sermon notes, reading plans with progress tracking, and a quick-jot revelations tab.
+A self-hosted Bible note-taking app with web (Next.js 16) and mobile (Expo SDK 54) frontends, backed by PocketBase. Features include daily Bible reading notes with verse auto-linking, small group notes, sermon notes, reading plans with progress tracking, and a quick-jot revelations tab.
 
 ## Tech Stack (Verified Latest LTS/Stable — April 2026)
 
@@ -42,7 +42,7 @@ A self-hosted Bible note-taking app with web (Next.js 16) and mobile (Expo SDK 5
 bible-notes/
 ├── apps/
 │   ├── web/                        # Next.js 16 app
-│   └── mobile/                      # Expo SDK 55 app (Phase B)
+│   └── mobile/                      # Expo SDK 54 app (Phase B)
 ├── packages/
 │   ├── shared/                      # Types, constants, verse parser
 │   │   ├── src/
@@ -242,29 +242,29 @@ EXPO_PUBLIC_POCKETBASE_URL=http://localhost:8090
 
 ## Execution Order
 
-### Phase A — Web App
-1. Root monorepo setup
-2. packages/shared (types, constants, verse parser)
-3. packages/pocketbase-client (CRUD wrapper)
-4. PocketBase migrations + seed data
-5. Web app scaffolding (Next.js 16 + Tailwind v4 + shadcn/ui)
-6. Auth pages
-7. Home dashboard
-8. Bible Notes tab
-9. Small Groups tab
-10. Sermons tab
-11. Reading Plans tab
-12. Revelations tab
-13. Scripts (setup, backup, restore)
+### Phase A — Web App ✅
+1. ✅ Root monorepo setup
+2. ✅ packages/shared (types, constants, verse parser)
+3. ✅ packages/pocketbase-client (CRUD wrapper)
+4. ✅ PocketBase migrations + seed data
+5. ✅ Web app scaffolding (Next.js 16 + Tailwind v4 + shadcn/ui)
+6. ✅ Auth pages
+7. ✅ Home dashboard
+8. ✅ Bible Notes tab
+9. ✅ Small Groups tab
+10. ✅ Sermons tab
+11. ✅ Reading Plans tab
+12. ✅ Revelations tab
+13. ✅ Scripts (setup, backup, restore)
 
-### Phase B — Mobile App (after web is complete)
-14. Expo SDK 55 scaffolding + Expo Router v5
-15. Bottom tab navigator
-16. Auth screens
-17. All 6 tab screens
-18. Mobile-specific UX
+### Phase B — Mobile App ✅
+14. ✅ Expo SDK 54 scaffolding + Expo Router v6
+15. ✅ Bottom tab navigator
+16. ✅ Auth screens (incl. biometric login)
+17. ✅ All 6 tab screens (CRUD + search)
+18. ⏳ Mobile-specific UX — remaining: share-to-app intent, local notification reminders, PNG icons for store submission
 
-### Phase C — Deployment
-19. Docker Compose + Nginx
-20. Backup automation
-21. Documentation
+### Phase C — Deployment ✅
+19. ✅ Docker Compose + Nginx (dev + production/Coolify)
+20. ✅ Backup automation
+21. ✅ Documentation (STATUS.md, PLAN.md)

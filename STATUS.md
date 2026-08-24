@@ -1,8 +1,8 @@
 # Bible Notes App — Project Status
 
-**Last updated:** April 28, 2026
+**Last updated:** August 24, 2026
 **Phase:** Phase A (Web App) — Complete, reviewed, hardened, and deployed
-**Phase B (Mobile App — Expo SDK 55)**: Scaffolded and functional
+**Phase B (Mobile App — Expo SDK 54)**: Functional — 6 tabs, full CRUD, search, rich text, biometric login
 
 ---
 
@@ -148,6 +148,41 @@ bible-notes/
 
 ---
 
+## Recent Work (May 2026)
+
+### Rich Text Editing (Web + Mobile)
+- **Web**: TipTap `RichTextEditor` (bold/italic/underline/lists/links) on all create/edit forms for bible notes, small groups, sermons, revelations
+- **Web**: `HtmlContent` renders stored HTML safely via DOMPurify sanitization; `VerseContent` linkifies verses in plain text
+- **Mobile**: `RichTextInput` (TipTap-based), `SmartContent` auto-detects HTML vs Markdown, `HtmlVerseContent` (react-native-render-html) with verse linking, `MarkdownContent` (react-native-markdown-display)
+
+### Bible Notes Title Field
+- New required `title` field on `bible_notes` (migration `005` with backfill from verse refs/content)
+- Types, Zod validation, client, import/export, web + mobile UI all updated
+
+### Mobile Search & Polish
+- Search bars + quick delete (with confirmation) on all 5 list screens; pull-to-refresh; dashboard refreshes on focus
+- Horizontal padding and spacing fixes on detail screens
+
+### Mobile Biometric Login
+- Fingerprint/FaceID login via `expo-local-authentication` + `expo-secure-store` (`apps/mobile/lib/biometric-auth.ts`)
+- Credentials stored in SecureStore, 7-day session, opt-in modal after password login
+
+### Web Responsive UI
+- `MobileSearchBar` + `FilterSheet` bottom-sheet filters on list pages (small screens), collapsible list cards, dashboard titles, `PasswordInput` with visibility toggle
+
+### Sermons
+- Verse linking in sermon detail (`linkifyVersesInHtml` in shared), HTML tag stripping in list previews, spacing fixes
+
+### Docker / Deployment
+- New `docker-compose.dev.yml` + `docker-compose.production.yml` (Coolify/Traefik), healthchecks on both services, `Dockerfile.pocketbase` + custom entrypoint (superuser auto-create), `Dockerfile.web.dev` for hot-reload dev
+
+### Security & Tooling (Aug 2026)
+- **Migration `006`**: fixed `users.deleteRule` from `""` (anyone could delete any account) to `id = @request.auth.id` (owner-only) — verified live against PocketBase 0.37.2
+- **ESLint set up** for web (`eslint-config-next`) and mobile (`eslint-config-expo`) — `pnpm lint` works
+- **Mobile type-check fixed**: removed legacy duplicate `Button/Card/Input/Screen.tsx` casing-collision files
+
+---
+
 ## Comprehensive Review & Fixes (April 27–28, 2026)
 
 A full security, architecture, and UI/UX review was completed. All critical issues have been resolved.
@@ -249,17 +284,22 @@ A full security, architecture, and UI/UX review was completed. All critical issu
 - ✅ Git initialized and committed
 
 ### Needs Implementation
-- [ ] **Mobile app polish**: Create/edit screens, signup screen, icon assets, share-to-app intent, local notifications
-- [ ] **Production deployment refresh**: Redeploy to Coolify with latest changes at bible.zonit.co.za
+- [ ] **Mobile polish (remaining)**: Share-to-app intent, local notification reminders for reading plans, PNG icon conversion for app store submission
+- [ ] **CSV export option** in addition to JSON
+- [ ] **Production deployment refresh**: Redeploy to Coolify with latest changes at bible.zonit.co.za (applies migration `006` security fix)
 
 ### Completed Recently
-- ✅ **Mobile app (Phase B)**: Expo SDK 55 scaffolded with Expo Router v5, auth provider, bottom tab navigator, all 6 tabs with list + detail screens
+- ✅ **Mobile app (Phase B)**: Expo SDK 54 + Expo Router v6 — auth, 6 tabs, full CRUD with rich text, search + quick delete, biometric login
+- ✅ **Rich text editing**: TipTap editor + DOMPurify-safe HTML rendering on web and mobile
+- ✅ **Bible notes title field**: Migration 005 + backfill, full-stack support
 - ✅ **Production deployment**: Deployed to Coolify with domain bible.zonit.co.za
+- ✅ **Users deleteRule security fix**: Migration 006 restricts account deletion to the owner
 - ✅ **Password reset flow UI**: `/forgot-password` page complete
 - ✅ **PWA / offline support**: Service worker, manifest, installable app
 - ✅ **Dark mode toggle**: System-aware with manual override
 - ✅ **Export/import notes**: JSON export/import with error handling
 - ✅ **Client-side Zod validation**: All schemas extracted to `@bible-notes/shared`
+- ✅ **ESLint + type-check green**: Web and mobile both lint and type-check clean
 
 ### Potential Improvements
 - [ ] Add share-to-app intent for mobile
@@ -274,7 +314,7 @@ A full security, architecture, and UI/UX review was completed. All critical issu
 |---|---|
 | **Implementation Plan** | `PLAN.md` |
 | **This Status File** | `STATUS.md` |
-| **PocketBase Migration** | `server/pb_migrations/001_init_collections.js` |
+| **PocketBase Migration** | `server/pb_migrations/001_init_collections.js` (+ `002`–`006`: service type, rules, title field, delete-rule fix) |
 | **PocketBase Hooks** | `server/hooks/main.pb.js` |
 | **Reading Plan Seeds** | `server/seed/reading-plans/*.json` |
 | **Shared Types** | `packages/shared/src/types.ts` |
@@ -349,16 +389,18 @@ EXPO_PUBLIC_POCKETBASE_URL=https://bible.zonit.co.za
 ```
 
 ## Current Mobile Features
-- **Auth**: Login screen, signup screen, auto-redirect if already authenticated, logout in tab header
+- **Auth**: Login screen, signup screen, auto-redirect if already authenticated, logout in tab header, **fingerprint/FaceID login** (SecureStore + 7-day session)
 - **Home tab**: Recent Bible Notes, Sermons, Revelations with navigation to detail
-- **Notes tab**: List with pull-to-refresh, "+ New" button, verse refs, content preview, detail view with edit/delete
-- **Sermons tab**: List with "+ New" button, pastor/campus/service type, detail view with edit/delete
-- **Small Groups tab**: List with "+ New" button, topic/attendees, detail view with edit/delete
+- **Notes tab**: List with search + pull-to-refresh, "+ New" button, verse refs, content preview, detail view with edit/delete
+- **Sermons tab**: List with search + "+ New" button, pastor/campus/service type, detail view with edit/delete
+- **Small Groups tab**: List with search + "+ New" button, topic/attendees, detail view with edit/delete
 - **Reading Plans tab**: List with "+ New" button, progress bars, detail view with interactive day toggles and delete
-- **Revelations tab**: Quick-jot input at top, list with pull-to-refresh, "+ New" button, detail view with edit/delete
-- **Create screens**: Full forms for all 5 collections (Bible Notes, Small Groups, Sermons, Reading Plans, Revelations)
+- **Revelations tab**: Quick-jot input at top, list with search + pull-to-refresh, "+ New" button, detail view with edit/delete
+- **Create screens**: Full forms for all 5 collections (Bible Notes, Small Groups, Sermons, Reading Plans, Revelations) with `RichTextInput`
 - **Edit screens**: Inline edit mode on all detail screens with save/cancel
-- **Delete**: Alert confirmation on all detail screens
+- **Content rendering**: `SmartContent` auto-detects HTML vs Markdown; verse references link out to Bible Gateway
+- **Delete**: Alert/quick-delete with confirmation on all detail + list screens
+- **Settings screen**: App settings with logout
 - **Icons**: SVG app icons (icon, adaptive-icon, splash)
 
 ## Missing Mobile Features (TODO)
