@@ -38,9 +38,10 @@ export default function SignupPage() {
       await signup(email, password, name)
       router.push('/')
       router.refresh()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Signup error:', err)
-      setError(err?.message || err?.response?.message || 'Failed to create account. Email may already be in use.')
+      const e = err as { message?: string; response?: { message?: string } } | null
+      setError(e?.message || e?.response?.message || 'Failed to create account. Email may already be in use.')
     } finally {
       setIsLoading(false)
     }

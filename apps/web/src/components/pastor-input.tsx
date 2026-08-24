@@ -15,6 +15,13 @@ interface PastorInputProps {
 
 export function PastorInput({ value, onChange, placeholder = 'Pastor', className }: PastorInputProps) {
   const [inputValue, setInputValue] = useState(value)
+  // Keep the input in sync when the controlled value changes from outside
+  // (React's recommended "adjust state when a prop changes" pattern).
+  const [prevValue, setPrevValue] = useState(value)
+  if (prevValue !== value) {
+    setPrevValue(value)
+    setInputValue(value)
+  }
   const [open, setOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -29,10 +36,6 @@ export function PastorInput({ value, onChange, placeholder = 'Pastor', className
   const filteredPastors = (pastors || []).filter((p) =>
     p.toLowerCase().includes(inputValue.toLowerCase())
   )
-
-  useEffect(() => {
-    setInputValue(value)
-  }, [value])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

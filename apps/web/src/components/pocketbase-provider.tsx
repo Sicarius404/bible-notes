@@ -1,14 +1,13 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
-import { getPocketBase, resetPocketBase } from '@bible-notes/pocketbase-client'
+import { createContext, useContext, useEffect, useCallback, useMemo, useSyncExternalStore } from 'react'
+import { getPocketBase } from '@bible-notes/pocketbase-client'
 import type { AuthUser } from '@bible-notes/pocketbase-client'
 import type PocketBase from 'pocketbase'
-import { logIn, logOut, getCurrentUser, signUp } from '@bible-notes/pocketbase-client'
+import { logIn, logOut, signUp } from '@bible-notes/pocketbase-client'
 
 type AuthContextType = {
   user: AuthUser | null
-  isLoading: boolean
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<AuthUser>
   signup: (email: string, password: string, name?: string) => Promise<AuthUser>
@@ -34,75 +33,76 @@ function syncAuthToCookie(pb: PocketBase) {
   document.cookie = `pb_auth=${pb.authStore.token}; path=/; max-age=${pb.authStore.token ? 60 * 60 * 24 * 7 : 0}; ${secure}SameSite=Lax`
 }
 
+// useSyncExternalStore requires getSnapshot to return a stable reference
+// when the underlying record hasn't changed, so cache the mapped user
+// against the auth store record it was derived from.
+let cachedRecord: Record<string, unknown> | null | undefined
+let cachedUser: AuthUser | null = null
+
+function snapshotUser(pb: PocketBase): AuthUser | null {
+  const record = pb.authStore.record
+  if (record === cachedRecord) return cachedUser
+  cachedRecord = record
+  cachedUser = record ? mapUser(record) : null
+  return cachedUser
+}
+
 export function PocketBaseProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const pb = useMemo(() => getPocketBase(), [])
 
+  // Subscribe to the PocketBase auth store as an external store:
+  // getServerSnapshot (null) is used for SSR/hydration to avoid mismatches,
+  // and getSnapshot re-renders when auth state changes.
+  const user = useSyncExternalStore(
+    useCallback((onChange: () => void) => pb.authStore.onChange(() => onChange()), [pb]),
+    () => snapshotUser(pb),
+    () => null
+  )
+
+  // Sync auth state to the cookie for the middleware (external system).
   useEffect(() => {
-    // Check if already authenticated
-    const currentUser = getCurrentUser()
-    setUser(currentUser)
-    setIsLoading(false)
-
-    // Sync auth state to cookie for middleware
     syncAuthToCookie(pb)
-
-    // Listen for auth state changes
-    const unsub = pb.authStore.onChange((_token: string, record: Record<string, unknown> | null) => {
-      if (record) {
-        setUser({
-          id: record.id as string,
-          email: record.email as string,
-          name: record.name as string,
-          avatar: record.avatar as string | undefined,
-          created: record.created as string,
-          updated: record.updated as string,
-        })
-      } else {
-        setUser(null)
-      }
-      // Re-sync cookie on every auth change
-      syncAuthToCookie(pb)
-    })
-
-    return () => {
-      unsub()
-    }
-  }, [pb.authStore.token])
+  }, [pb, user])
 
   const login = useCallback(async (email: string, password: string) => {
     const authUser = await logIn(email, password)
-    setUser(authUser)
     syncAuthToCookie(getPocketBase())
     return authUser
   }, [])
 
   const signupFn = useCallback(async (email: string, password: string, name?: string) => {
     const authUser = await signUp(email, password, name)
-    setUser(authUser)
     syncAuthToCookie(getPocketBase())
     return authUser
   }, [])
 
   const logout = useCallback(async () => {
     await logOut()
-    setUser(null)
     syncAuthToCookie(getPocketBase())
   }, [])
 
   const contextValue = useMemo(() => ({
     user,
-    isLoading,
     isAuthenticated: !!user,
     login,
     signup: signupFn,
     logout,
-  }), [user, isLoading, login, signupFn, logout])
+  }), [user, login, signupFn, logout])
 
   return (
     <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   )
+}
+
+function mapUser(record: Record<string, unknown>): AuthUser {
+  return {
+    id: record.id as string,
+    email: record.email as string,
+    name: record.name as string,
+    avatar: record.avatar as string | undefined,
+    created: record.created as string,
+    updated: record.updated as string,
+  }
 }
