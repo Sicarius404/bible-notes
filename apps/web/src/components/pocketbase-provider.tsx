@@ -34,16 +34,37 @@ function syncAuthToCookie(pb: PocketBase) {
 }
 
 // useSyncExternalStore requires getSnapshot to return a stable reference
-// when the underlying record hasn't changed, so cache the mapped user
-// against the auth store record it was derived from.
-let cachedRecord: Record<string, unknown> | null | undefined
+// when the underlying data hasn't changed. The PocketBase SDK's LocalAuthStore
+// re-parses localStorage on every `authStore.record` access, so the record is a
+// NEW object reference each time — keying the cache on object identity would
+// make getSnapshot return a new reference and trigger an infinite loop. Instead
+// cache on a content signature built from the user fields we map.
+let cachedSignature = ''
 let cachedUser: AuthUser | null = null
 
 function snapshotUser(pb: PocketBase): AuthUser | null {
   const record = pb.authStore.record
-  if (record === cachedRecord) return cachedUser
-  cachedRecord = record
-  cachedUser = record ? mapUser(record) : null
+  if (!record) {
+    if (cachedUser !== null) {
+      cachedUser = null
+      cachedSignature = ''
+    }
+    return cachedUser
+  }
+
+  const sig = [
+    record.id,
+    record.email,
+    record.name,
+    record.avatar,
+    record.created,
+    record.updated,
+  ].join('|')
+
+  if (sig !== cachedSignature) {
+    cachedSignature = sig
+    cachedUser = mapUser(record)
+  }
   return cachedUser
 }
 
