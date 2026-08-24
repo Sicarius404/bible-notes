@@ -3,3 +3,11 @@ packages:
   - "packages/*"
 allowBuilds:
   sharp: true
+overrides:
+  jsdom: 25.0.1
+  # zod 4 is pulled in transitively by eslint-plugin-react-hooks (via
+  # zod-validation-error) and gets hoisted to the virtual store root, which
+  # makes @hookform/resolvers' zodResolver types resolve against zod v4 while
+  # the app runs zod v3 (zod 3.25.x main entry is the v3 API). Pin zod so the
+  # whole tree (incl. gluestack-ui, which needs zod 3) stays on one version.
+  zod: 3.25.76
