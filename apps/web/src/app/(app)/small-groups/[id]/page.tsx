@@ -13,13 +13,12 @@ import {
   deleteSmallGroupNote,
 } from '@bible-notes/pocketbase-client'
 import { smallGroupNoteSchema } from '@bible-notes/shared'
-import VerseContent from '@/components/verse-content'
-import RichTextEditor from '@/components/rich-text-editor'
+import VerseContent from '@/components/verse/verse-content'
+import RichTextEditor from '@/components/content/rich-text-editor'
 import DeleteDialog from '@/components/delete-dialog'
-import HtmlContent from '@/components/html-content'
+import HtmlContent from '@/components/content/html-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -220,7 +219,7 @@ export default function SmallGroupDetailPage() {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Content</h3>
-                <div className="prose prose-sm max-w-none text-sm leading-relaxed">
+                <div className="rich-content">
                   <HtmlContent html={note.content} />
                 </div>
               </div>

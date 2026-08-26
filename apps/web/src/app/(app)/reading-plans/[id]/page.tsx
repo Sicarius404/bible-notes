@@ -22,7 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { VerseBadge } from '@/components/verse-badge'
+import { VerseBadge } from '@/components/verse/verse-badge'
 import {
   ArrowLeft,
   CheckCircle2,

@@ -80,6 +80,28 @@ export default function SermonDetail() {
     ])
   }
 
+  const buildEditForm = (s: Sermon) => ({
+    date: s.date,
+    title: s.title,
+    pastor: s.pastor,
+    campus: s.campus,
+    service_type: s.service_type as ServiceType,
+    content: s.content,
+  })
+
+  const handleEdit = () => {
+    if (!sermon) return
+    setEditForm(buildEditForm(sermon))
+    setIsEditing(true)
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    if (!sermon) return
+    // Restore the persisted record so unsaved changes are fully discarded.
+    setEditForm(buildEditForm(sermon))
+  }
+
   if (loading) {
     return (
       <Screen style={styles.center}>
@@ -134,7 +156,7 @@ export default function SermonDetail() {
 
             <View style={styles.buttonRow}>
               <Button title="Save Changes" onPress={handleUpdate} loading={saving} style={{ flex: 1 }} />
-              <Button title="Cancel" onPress={() => setIsEditing(false)} variant="outline" style={{ flex: 1 }} />
+              <Button title="Cancel" onPress={handleCancel} variant="outline" style={{ flex: 1 }} />
             </View>
           </View>
         ) : (
@@ -146,7 +168,7 @@ export default function SermonDetail() {
             <View style={styles.divider} />
             <SmartContent content={sermon.content} />
             <View style={styles.buttonRow}>
-              <Button title="Edit" onPress={() => setIsEditing(true)} variant="outline" style={{ flex: 1 }} />
+              <Button title="Edit" onPress={handleEdit} variant="outline" style={{ flex: 1 }} />
               <Button title="Delete" onPress={handleDelete} variant="ghost" style={{ flex: 1 }} />
             </View>
           </View>

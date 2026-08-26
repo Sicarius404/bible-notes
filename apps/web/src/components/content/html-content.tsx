@@ -38,7 +38,7 @@ export default function HtmlContent({ html, className = '', linkifyVerses = fals
 
   return (
     <div
-      className={`prose prose-sm max-w-none dark:prose-invert ${className}`}
+      className={`rich-content ${className}`}
       dangerouslySetInnerHTML={{ __html: sanitized }}
     />
   )

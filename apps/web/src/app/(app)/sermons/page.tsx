@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
 import { listSermons, getAllCampuses, deleteSermon } from '@bible-notes/pocketbase-client'
-import { SERVICE_TYPES, SERVICE_TYPE_LABELS } from '@bible-notes/shared'
+import { getContentPreview, SERVICE_TYPES, SERVICE_TYPE_LABELS } from '@bible-notes/shared'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,9 +22,9 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Search, Plus, ChevronLeft, ChevronRight, Church, Trash2 } from 'lucide-react'
 import type { ServiceType } from '@bible-notes/shared'
-import MobileSearchBar from '@/components/mobile-search-bar'
+import MobileSearchBar from '@/components/navigation/mobile-search-bar'
 import DeleteDialog from '@/components/delete-dialog'
-import type { FilterConfig } from '@/components/filter-sheet'
+import type { FilterConfig } from '@/components/navigation/filter-sheet'
 
 const filterConfig: FilterConfig[] = [
   { key: 'pastor', label: 'Pastor', type: 'text' },
@@ -32,15 +32,6 @@ const filterConfig: FilterConfig[] = [
   { key: 'date_from', label: 'From Date', type: 'date' },
   { key: 'date_to', label: 'To Date', type: 'date' },
 ]
-
-function stripHtml(html: string): string {
-  // Replace block-level tags and <br> with a space so adjacent text doesn't run together
-  const withSpaces = html
-    .replace(/<\/(p|div|h[1-6]|li|blockquote)>/gi, ' ')
-    .replace(/<br\s*\/?>/gi, ' ')
-  // Strip remaining tags
-  return withSpaces.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
-}
 
 export default function SermonsPage() {
   const [search, setSearch] = useState('')
@@ -290,7 +281,7 @@ export default function SermonsPage() {
                         {sermon.pastor} · {sermon.campus}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {stripHtml(sermon.content)}
+                        {getContentPreview(sermon.content, 180)}
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2 shrink-0">
@@ -308,7 +299,8 @@ export default function SermonsPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 z-10"
+              className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity bg-card/80 z-10"
+              aria-label="Delete sermon"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()

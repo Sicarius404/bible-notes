@@ -3,19 +3,18 @@
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { listBibleNotes, deleteBibleNote } from '@bible-notes/pocketbase-client'
-import type { BibleNote } from '@bible-notes/shared'
+import { getContentPreview, type BibleNote } from '@bible-notes/shared'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Search, Plus, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Trash2, BookOpen } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
-import MobileSearchBar from '@/components/mobile-search-bar'
+import MobileSearchBar from '@/components/navigation/mobile-search-bar'
 import DeleteDialog from '@/components/delete-dialog'
-import HtmlContent from '@/components/html-content'
-import type { FilterConfig } from '@/components/filter-sheet'
+import type { FilterConfig } from '@/components/navigation/filter-sheet'
 
 const filterConfig: FilterConfig[] = [
   { key: 'verse_ref', label: 'Verse Reference', type: 'text' },
@@ -195,7 +194,8 @@ export default function BibleNotesPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 z-10"
+                  className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity bg-card/80 z-10"
+                  aria-label="Delete note"
                   onClick={(e) => {
                     e.stopPropagation()
                     setDeleteId(note.id)
@@ -220,7 +220,7 @@ export default function BibleNotesPage() {
                           </Badge>
                         ))}
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(note.date), 'MMM d, yyyy')}
+                          {format(parseISO(note.date), 'MMM d, yyyy')}
                         </span>
                       </div>
                     </div>
@@ -232,9 +232,9 @@ export default function BibleNotesPage() {
                   </div>
                   {isExpanded && (
                     <div className="mt-4 space-y-3 pt-4 border-t border-border/50">
-                      <div className="text-sm text-muted-foreground line-clamp-4">
-                        <HtmlContent html={note.content} />
-                      </div>
+                      <p className="text-sm text-muted-foreground line-clamp-4">
+                        {getContentPreview(note.content, 260) || 'No content'}
+                      </p>
                       <Link href={`/bible-notes/${note.id}`} onClick={(e) => e.stopPropagation()}>
                         <Button variant="outline" size="sm" className="w-full sm:w-auto">
                           View Full Note

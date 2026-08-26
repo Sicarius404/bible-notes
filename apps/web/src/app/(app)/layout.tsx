@@ -3,10 +3,10 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useAuth } from '@/components/pocketbase-provider'
+import { useAuth } from '@/components/providers/pocketbase-provider'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
-import { ThemeToggle } from '@/components/theme-toggle'
+import { ThemeToggle } from '@/components/navigation/theme-toggle'
 import {
   Home,
   BookOpen,
@@ -62,8 +62,9 @@ function NavContent({ onClick }: { onClick?: () => void }) {
     <div className="flex flex-col h-full">
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Bible Notes</h1>
-          <p className="text-sm text-muted-foreground">{user?.name || user?.email}</p>
+          <h1 className="font-display text-xl font-semibold">Bible Notes</h1>
+          <div className="heading-rule mt-2" />
+          <p className="text-sm text-muted-foreground mt-2">{user?.name || user?.email}</p>
         </div>
         <ThemeToggle />
       </div>
@@ -109,7 +110,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <NavContent onClick={() => setIsMobileNavOpen(false)} />
           </SheetContent>
         </Sheet>
-        <h1 className="text-lg font-semibold">Bible Notes</h1>
+        <h1 className="font-display text-lg font-semibold">Bible Notes</h1>
         <div className="ml-auto">
           <ThemeToggle />
         </div>

@@ -10,8 +10,7 @@ import { smallGroupNoteSchema } from '@bible-notes/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import RichTextEditor from '@/components/rich-text-editor'
+import RichTextEditor from '@/components/content/rich-text-editor'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
@@ -41,7 +40,7 @@ export default function NewSmallGroupPage() {
   const mutation = useMutation({
     mutationFn: createSmallGroupNote,
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['small-groups'] })
+      queryClient.invalidateQueries({ queryKey: ['small-group-notes'] })
       router.push(`/small-groups/${data.id}`)
     },
   })

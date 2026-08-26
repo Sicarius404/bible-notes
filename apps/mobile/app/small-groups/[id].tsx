@@ -70,6 +70,26 @@ export default function SmallGroupDetail() {
     ])
   }
 
+  const buildEditForm = (n: SmallGroupNote) => ({
+    date: n.date,
+    topic: n.topic,
+    attendees: n.attendees,
+    content: n.content,
+  })
+
+  const handleEdit = () => {
+    if (!note) return
+    setEditForm(buildEditForm(note))
+    setIsEditing(true)
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    if (!note) return
+    // Restore the persisted record so unsaved changes are fully discarded.
+    setEditForm(buildEditForm(note))
+  }
+
   if (loading) {
     return (
       <Screen style={styles.center}>
@@ -103,7 +123,7 @@ export default function SmallGroupDetail() {
             />
             <View style={styles.buttonRow}>
               <Button title="Save Changes" onPress={handleUpdate} loading={saving} style={{ flex: 1 }} />
-              <Button title="Cancel" onPress={() => setIsEditing(false)} variant="outline" style={{ flex: 1 }} />
+              <Button title="Cancel" onPress={handleCancel} variant="outline" style={{ flex: 1 }} />
             </View>
           </View>
         ) : (
@@ -116,7 +136,7 @@ export default function SmallGroupDetail() {
             <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>Content</Text>
             <SmartContent content={note.content} />
             <View style={styles.buttonRow}>
-              <Button title="Edit" onPress={() => setIsEditing(true)} variant="outline" style={{ flex: 1 }} />
+              <Button title="Edit" onPress={handleEdit} variant="outline" style={{ flex: 1 }} />
               <Button title="Delete" onPress={handleDelete} variant="ghost" style={{ flex: 1 }} />
             </View>
           </View>

@@ -79,6 +79,26 @@ export default function BibleNoteDetail() {
     ])
   }
 
+  const buildEditForm = (n: BibleNote) => ({
+    title: n.title,
+    date: n.date,
+    verse_refs: n.verse_refs.join(', '),
+    content: n.content,
+  })
+
+  const handleEdit = () => {
+    if (!note) return
+    setEditForm(buildEditForm(note))
+    setIsEditing(true)
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    if (!note) return
+    // Restore the persisted record so unsaved changes are fully discarded.
+    setEditForm(buildEditForm(note))
+  }
+
   if (loading) {
     return (
       <Screen style={styles.center}>
@@ -127,7 +147,7 @@ export default function BibleNoteDetail() {
             />
             <View style={styles.buttonRow}>
               <Button title="Save Changes" onPress={handleUpdate} loading={saving} style={{ flex: 1 }} />
-              <Button title="Cancel" onPress={() => setIsEditing(false)} variant="outline" style={{ flex: 1 }} />
+              <Button title="Cancel" onPress={handleCancel} variant="outline" style={{ flex: 1 }} />
             </View>
           </View>
         ) : (
@@ -138,7 +158,7 @@ export default function BibleNoteDetail() {
             <View style={styles.divider} />
             <SmartContent content={note.content} />
             <View style={styles.buttonRow}>
-              <Button title="Edit" onPress={() => setIsEditing(true)} variant="outline" style={{ flex: 1 }} />
+              <Button title="Edit" onPress={handleEdit} variant="outline" style={{ flex: 1 }} />
               <Button title="Delete" onPress={handleDelete} variant="ghost" style={{ flex: 1 }} />
             </View>
           </View>

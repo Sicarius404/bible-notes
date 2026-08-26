@@ -1,18 +1,18 @@
 'use client'
 
 import * as React from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getRevelation, updateRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
-import { revelationSchema, stripHtml } from '@bible-notes/shared'
-import RichTextEditor from '@/components/rich-text-editor'
+import { revelationSchema, getContentPreview, toDateInputValue } from '@bible-notes/shared'
+import RichTextEditor from '@/components/content/rich-text-editor'
 import DeleteDialog from '@/components/delete-dialog'
-import HtmlContent from '@/components/html-content'
+import HtmlContent from '@/components/content/html-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -45,20 +45,27 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
     resolver: zodResolver(revelationSchema),
   })
 
+  // Populate the form only once per revelation id, so a cache refresh after a
+  // save does not wipe in-progress edits.
+  const initializedIdRef = useRef<string | null>(null)
+
   useEffect(() => {
-    if (revelation) {
+    if (revelation && initializedIdRef.current !== id) {
       reset({
-        date: revelation.date,
+        date: toDateInputValue(revelation.date),
         content: revelation.content,
       })
+      initializedIdRef.current = id
     }
-  }, [revelation, reset])
+  }, [revelation, id, reset])
 
   const updateMutation = useMutation({
     mutationFn: (data: { date: string; content: string }) => updateRevelation(id, data),
-    onSuccess: () => {
-      setIsEditing(false)
+    onSuccess: (updated) => {
+      // Update the detail cache immediately so the saved content shows at once.
+      queryClient.setQueryData(['revelation', id], updated)
       queryClient.invalidateQueries({ queryKey: ['revelations'] })
+      setIsEditing(false)
     },
   })
 
@@ -79,6 +86,25 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
   const handleDelete = () => {
     deleteMutation.mutate()
   }
+
+  const handleEdit = useCallback(() => {
+    if (!revelation) return
+    reset({
+      date: toDateInputValue(revelation.date),
+      content: revelation.content,
+    })
+    setIsEditing(true)
+  }, [revelation, reset])
+
+  const handleCancel = useCallback(() => {
+    setIsEditing(false)
+    if (!revelation) return
+    // Restore the persisted record so unsaved changes are fully discarded.
+    reset({
+      date: toDateInputValue(revelation.date),
+      content: revelation.content,
+    })
+  }, [revelation, reset])
 
   if (isLoading) {
     return (
@@ -137,19 +163,18 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
           </Link>
           <div>
             <h2 className="text-2xl font-semibold">
-              {isEditing ? 'Edit Revelation' : format(new Date(revelation.date), 'MMMM d, yyyy')}
+              {isEditing ? 'Edit Revelation' : format(parseISO(revelation.date), 'MMMM d, yyyy')}
             </h2>
             {!isEditing && (
               <p className="text-muted-foreground text-sm">
-                {stripHtml(revelation.content).slice(0, 100)}
-                {stripHtml(revelation.content).length > 100 ? '...' : ''}
+                {getContentPreview(revelation.content, 100)}
               </p>
             )}
           </div>
         </div>
         {!isEditing && (
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setIsEditing(true)}>
+            <Button variant="outline" onClick={handleEdit}>
               <Pencil className="h-4 w-4 mr-2" />
               Edit
             </Button>
@@ -191,7 +216,7 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
           </Card>
 
           <div className="flex items-center justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
             <Button type="submit" disabled={updateMutation.isPending}>
@@ -206,8 +231,8 @@ export default function RevelationPage({ params }: { params: Promise<{ id: strin
       ) : (
         <Card>
           <CardContent className="p-6">
-            <div className="prose prose-sm max-w-none dark:prose-invert">
-              <HtmlContent html={revelation.content} />
+            <div className="rich-content">
+              <HtmlContent html={revelation.content} linkifyVerses />
             </div>
           </CardContent>
         </Card>

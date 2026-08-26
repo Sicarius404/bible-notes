@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { format, parseISO } from 'date-fns'
 import { listSmallGroupNotes, deleteSmallGroupNote } from '@bible-notes/pocketbase-client'
-import type { SmallGroupNote } from '@bible-notes/shared'
+import { getContentPreview, type SmallGroupNote } from '@bible-notes/shared'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,9 +13,9 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { useDebounce } from '@/hooks/use-debounce'
 import { Plus, Search, ChevronLeft, ChevronRight, Users, Trash2 } from 'lucide-react'
-import MobileSearchBar from '@/components/mobile-search-bar'
+import MobileSearchBar from '@/components/navigation/mobile-search-bar'
 import DeleteDialog from '@/components/delete-dialog'
-import type { FilterConfig } from '@/components/filter-sheet'
+import type { FilterConfig } from '@/components/navigation/filter-sheet'
 
 const filterConfig: FilterConfig[] = [
   { key: 'topic', label: 'Topic', type: 'text' },
@@ -203,7 +203,7 @@ export default function SmallGroupsPage() {
                         {truncate(note.attendees, 60)}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {truncate(note.content, 120)}
+                        {getContentPreview(note.content, 160) || 'No content'}
                       </p>
                     </div>
                   </div>
@@ -213,7 +213,8 @@ export default function SmallGroupsPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity bg-card/80 z-10"
+              className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity bg-card/80 z-10"
+              aria-label="Delete note"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()

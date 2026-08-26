@@ -1,22 +1,21 @@
 'use client'
 
 import * as React from 'react'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getBibleNote, updateBibleNote, deleteBibleNote } from '@bible-notes/pocketbase-client'
-import { extractVerseRefs, bibleNoteSchema } from '@bible-notes/shared'
-import VerseContent from '@/components/verse-content'
-import RichTextEditor from '@/components/rich-text-editor'
+import { extractVerseRefs, bibleNoteSchema, verseToUrl, toDateInputValue } from '@bible-notes/shared'
+import VerseContent from '@/components/verse/verse-content'
+import RichTextEditor from '@/components/content/rich-text-editor'
 import DeleteDialog from '@/components/delete-dialog'
-import HtmlContent from '@/components/html-content'
+import HtmlContent from '@/components/content/html-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -61,16 +60,21 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
 
   const content = watch('content')
 
+  // Populate the form only once per note id, so a cache refresh (setQueryData
+  // after a save) or a refetch does not blow away in-progress edits.
+  const initializedIdRef = useRef<string | null>(null)
+
   useEffect(() => {
-    if (note) {
+    if (note && initializedIdRef.current !== id) {
       reset({
         title: note.title,
-        date: note.date,
+        date: toDateInputValue(note.date),
         content: note.content,
       })
       setVerseRefs(note.verse_refs || [])
+      initializedIdRef.current = id
     }
-  }, [note, reset])
+  }, [note, id, reset])
 
   useEffect(() => {
     if (content) {
@@ -84,9 +88,13 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
   const updateMutation = useMutation({
     mutationFn: (data: { title: string; date: string; verse_refs: string[]; content: string }) =>
       updateBibleNote(id, data),
-    onSuccess: () => {
-      setIsEditing(false)
+    onSuccess: (updated) => {
+      // Put the fresh record straight into the detail cache so the page
+      // immediately shows the saved title/content/date, then invalidate the
+      // list queries so they refetch.
+      queryClient.setQueryData(['bible-note', id], updated)
       queryClient.invalidateQueries({ queryKey: ['bible-notes'] })
+      setIsEditing(false)
     },
   })
 
@@ -135,6 +143,29 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
   const handleDelete = () => {
     deleteMutation.mutate()
   }
+
+  const handleEdit = useCallback(() => {
+    if (!note) return
+    reset({
+      title: note.title,
+      date: toDateInputValue(note.date),
+      content: note.content,
+    })
+    setVerseRefs(note.verse_refs || [])
+    setIsEditing(true)
+  }, [note, reset])
+
+  const handleCancel = useCallback(() => {
+    setIsEditing(false)
+    if (!note) return
+    // Restore the persisted record so unsaved changes are fully discarded.
+    reset({
+      title: note.title,
+      date: note.date,
+      content: note.content,
+    })
+    setVerseRefs(note.verse_refs || [])
+  }, [note, reset])
 
   if (isLoading) {
     return (
@@ -197,14 +228,14 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
             </h2>
             {!isEditing && (
               <p className="text-muted-foreground text-sm">
-                {format(new Date(note.date), 'MMMM d, yyyy')} &middot; {note.verse_refs.length} verse{note.verse_refs.length !== 1 ? 's' : ''} referenced
+                {format(parseISO(note.date), 'MMMM d, yyyy')} &middot; {note.verse_refs.length} verse{note.verse_refs.length !== 1 ? 's' : ''} referenced
               </p>
             )}
           </div>
         </div>
         {!isEditing && (
           <div className="flex items-center gap-2">
-            <Button variant="outline" className="hover:scale-[1.02] active:scale-95 transition-all duration-200" onClick={() => setIsEditing(true)}>
+            <Button variant="outline" className="hover:scale-[1.02] active:scale-95 transition-all duration-200" onClick={handleEdit}>
               <Pencil className="h-4 w-4 mr-2" />
               Edit
             </Button>
@@ -310,7 +341,7 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
           </Card>
 
           <div className="flex items-center justify-end gap-3">
-            <Button type="button" variant="outline" className="hover:scale-[1.02] active:scale-95 transition-all duration-200" onClick={() => setIsEditing(false)}>
+            <Button type="button" variant="outline" className="hover:scale-[1.02] active:scale-95 transition-all duration-200" onClick={handleCancel}>
               Cancel
             </Button>
             <Button type="submit" className="hover:scale-[1.02] active:scale-95 transition-all duration-200 shadow-md shadow-primary/20" disabled={updateMutation.isPending}>
@@ -331,7 +362,7 @@ export default function BibleNotePage({ params }: { params: Promise<{ id: string
                 {note.verse_refs.map((ref) => (
                   <a
                     key={ref}
-                    href={`https://www.biblegateway.com/passage/?search=${encodeURIComponent(ref)}&version=NIV`}
+                    href={verseToUrl(ref)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

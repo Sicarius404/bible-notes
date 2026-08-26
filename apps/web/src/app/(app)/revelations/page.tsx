@@ -3,19 +3,18 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { listRevelations, createRevelation, updateRevelation, deleteRevelation } from '@bible-notes/pocketbase-client'
-import type { Revelation } from '@bible-notes/shared'
-import HtmlContent from '@/components/html-content'
+import { getContentPreview, stripHtml, toDateInputValue, type Revelation } from '@bible-notes/shared'
+import RichTextEditor from '@/components/content/rich-text-editor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { Search, Plus, ChevronLeft, ChevronRight, Pencil, Trash2, X, Check } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
-import MobileSearchBar from '@/components/mobile-search-bar'
+import MobileSearchBar from '@/components/navigation/mobile-search-bar'
 import DeleteDialog from '@/components/delete-dialog'
-import type { FilterConfig } from '@/components/filter-sheet'
+import type { FilterConfig } from '@/components/navigation/filter-sheet'
 
 const filterConfig: FilterConfig[] = [
   { key: 'date_from', label: 'From Date', type: 'date' },
@@ -68,10 +67,12 @@ export default function RevelationsPage() {
   const updateMutation = useMutation({
     mutationFn: ({ id, content, date }: { id: string; content: string; date: string }) =>
       updateRevelation(id, { content, date }),
-    onSuccess: () => {
+    onSuccess: (updated) => {
       setEditingId(null)
       setEditContent('')
       setEditDate('')
+      // Keep the detail page's cache in sync with this inline edit.
+      queryClient.setQueryData(['revelation', updated.id], updated)
       queryClient.invalidateQueries({ queryKey: ['revelations'] })
     },
   })
@@ -108,7 +109,7 @@ export default function RevelationsPage() {
   const startEdit = (revelation: Revelation) => {
     setEditingId(revelation.id)
     setEditContent(revelation.content)
-    setEditDate(revelation.date)
+    setEditDate(toDateInputValue(revelation.date))
   }
 
   const cancelEdit = () => {
@@ -118,9 +119,9 @@ export default function RevelationsPage() {
   }
 
   const saveEdit = (id: string) => {
-    const trimmed = editContent.trim()
-    if (!trimmed) return
-    updateMutation.mutate({ id, content: trimmed, date: editDate })
+    // Guard against saving an editor that only holds empty HTML (e.g. <p></p>).
+    if (!stripHtml(editContent).trim()) return
+    updateMutation.mutate({ id, content: editContent, date: editDate })
   }
 
   const confirmDelete = (id: string) => {
@@ -238,10 +239,10 @@ export default function RevelationsPage() {
                       value={editDate}
                       onChange={(e) => setEditDate(e.target.value)}
                     />
-                    <Textarea
+                    <RichTextEditor
                       value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      rows={4}
+                      onChange={setEditContent}
+                      placeholder="Write your revelation..."
                     />
                     <div className="flex items-center justify-end gap-2">
                       <Button type="button" variant="outline" size="sm" onClick={cancelEdit}>
@@ -266,15 +267,16 @@ export default function RevelationsPage() {
                   <div>
                     <div className="flex items-start justify-between gap-4">
                       <Link href={`/revelations/${revelation.id}`} className="flex-1 min-w-0">
-                        <div className="text-sm prose prose-sm max-w-none dark:prose-invert line-clamp-3">
-                          <HtmlContent html={revelation.content} />
-                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                          {getContentPreview(revelation.content, 220) || 'No content'}
+                        </p>
                       </Link>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
+                          aria-label="Edit revelation"
                           onClick={() => startEdit(revelation)}
                         >
                           <Pencil className="h-4 w-4" />
@@ -283,6 +285,7 @@ export default function RevelationsPage() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-destructive"
+                          aria-label="Delete revelation"
                           onClick={() => confirmDelete(revelation.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -290,7 +293,7 @@ export default function RevelationsPage() {
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      {format(new Date(revelation.date), 'MMMM d, yyyy')}
+                      {format(parseISO(revelation.date), 'MMMM d, yyyy')}
                     </p>
                   </div>
                 )}

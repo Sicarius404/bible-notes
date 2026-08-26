@@ -2,16 +2,15 @@
 
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { listBibleNotes } from '@bible-notes/pocketbase-client'
 import { listSermons } from '@bible-notes/pocketbase-client'
 import { listRevelations } from '@bible-notes/pocketbase-client'
 import { listReadingPlans } from '@bible-notes/pocketbase-client'
-import { SERVICE_TYPE_LABELS } from '@bible-notes/shared'
+import { getContentPreview, SERVICE_TYPE_LABELS } from '@bible-notes/shared'
 import { BookOpen, Church, Lightbulb, CalendarCheck, Users, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import HtmlContent from '@/components/html-content'
 
 export default function HomePage() {
   const today = format(new Date(), 'yyyy-MM-dd')
@@ -155,7 +154,7 @@ export default function HomePage() {
                           {ref}
                         </Badge>
                       ))}
-                      <span className="text-xs text-muted-foreground">{format(new Date(note.date), 'MMM d, yyyy')}</span>
+                      <span className="text-xs text-muted-foreground">{format(parseISO(note.date), 'MMM d, yyyy')}</span>
                     </div>
                   </div>
                 </Link>
@@ -236,14 +235,10 @@ export default function HomePage() {
             {recentRevelations.items.slice(0, 3).map((rev) => (
               <Link key={rev.id} href={`/revelations/${rev.id}`} className="block">
                 <div className="p-2 rounded-md hover:bg-muted/50 transition-colors">
-                  {rev.content ? (
-                    <div className="text-sm prose prose-sm max-w-none dark:prose-invert line-clamp-3">
-                      <HtmlContent html={rev.content} />
-                    </div>
-                  ) : (
-                    <p className="text-sm">No content</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">{format(new Date(rev.date), 'MMM d, yyyy')}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {getContentPreview(rev.content, 220) || 'No content'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{format(parseISO(rev.date), 'MMM d, yyyy')}</p>
                 </div>
               </Link>
             ))}

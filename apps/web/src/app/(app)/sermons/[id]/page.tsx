@@ -9,18 +9,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { getSermon, updateSermon, deleteSermon } from '@bible-notes/pocketbase-client'
 import { SERVICE_TYPES, SERVICE_TYPE_LABELS, sermonSchema } from '@bible-notes/shared'
-import RichTextEditor from '@/components/rich-text-editor'
+import RichTextEditor from '@/components/content/rich-text-editor'
 import DeleteDialog from '@/components/delete-dialog'
-import HtmlContent from '@/components/html-content'
+import HtmlContent from '@/components/content/html-content'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { CampusInput } from '@/components/campus-input'
-import { PastorInput } from '@/components/pastor-input'
+import { CampusInput } from '@/components/forms/campus-input'
+import { PastorInput } from '@/components/forms/pastor-input'
 import { ArrowLeft, Pencil, Trash2, Save, X, Church } from 'lucide-react'
 import type { ServiceType } from '@bible-notes/shared'
 
@@ -309,7 +308,7 @@ export default function SermonDetailPage() {
               <CardTitle className="text-lg">Sermon Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
+              <div className="rich-content whitespace-pre-wrap">
                 <HtmlContent html={sermon.content} linkifyVerses />
               </div>
             </CardContent>

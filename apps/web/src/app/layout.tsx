@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Fraunces } from 'next/font/google'
 import './globals.css'
-import { Providers } from '@/components/providers'
+import { Providers } from '@/components/providers/providers'
+import BibleGatewayRefTagger from '@/components/integrations/bible-gateway-ref-tagger'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces' })
 
 export const metadata: Metadata = {
   title: 'Bible Notes',
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#2563eb',
+  themeColor: '#e6b450',
   width: 'device-width',
   initialScale: 1,
 }
@@ -29,7 +31,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${fraunces.variable} font-sans antialiased bg-background text-foreground`} suppressHydrationWarning>
+        <BibleGatewayRefTagger />
         <Providers>{children}</Providers>
       </body>
     </html>

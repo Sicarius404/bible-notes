@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuth } from '@/components/pocketbase-provider'
+import { useAuth } from '@/components/providers/pocketbase-provider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
